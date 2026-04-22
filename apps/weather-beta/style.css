@@ -30,7 +30,7 @@ body {
 @keyframes move { from { transform: translate(-10%, -10%); } to { transform: translate(20%, 20%); } }
 @keyframes pds-pulse { from { opacity: 0.3; } to { opacity: 0.8; } }
 
-/* Offline Banner - Now Fixed to avoid pushing window */
+/* Offline Banner - Fixed to top */
 #offline-banner {
     position: fixed; top: 0; left: 0; right: 0;
     background: #FF9500; color: #000; font-weight: bold;
@@ -60,16 +60,16 @@ body {
 .search-input-wrapper { display: flex; align-items: center; background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); border-radius: 12px; padding: 0 10px; }
 .search-icon { opacity: 0.6; }
 #location-search { flex-grow: 1; padding: 12px 10px; background: transparent; border: none; color: white; font-size: 16px; outline: none; }
-.icon-btn { background: transparent; border: none; color: white; cursor: pointer; padding: 5px; opacity: 0.8; transition: opacity 0.2s; }
+.icon-btn { background: transparent; border: none; color: white; cursor: pointer; padding: 5px; opacity: 0.8; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; }
 .icon-btn:hover { opacity: 1; }
 .ui-icon-sm { width: 18px; height: 18px; stroke: currentColor; }
 
-/* Autocomplete Dropdown - Z-index fix */
+/* Autocomplete Dropdown - High Z-Index */
 .dropdown {
     position: absolute; top: 100%; left: 0; right: 0; margin-top: 8px;
     background: rgba(20,20,25,0.95); backdrop-filter: blur(25px);
     border: 1px solid var(--glass-border); border-radius: 12px;
-    list-style: none; overflow: hidden; z-index: 1000; /* Pulled to the front */
+    list-style: none; overflow: hidden; z-index: 1000;
 }
 .dropdown.hidden { display: none; }
 .dropdown li { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); }
@@ -102,12 +102,12 @@ body {
 .pds-card .status-tag { color: var(--lvl-5); }
 .scanner-card h4 { font-size: 0.95rem; font-weight: 500; }
 
-/* The Data Radar Footer */
+/* Footer Heartbeat */
 .scan-status-footer { text-align: center; font-size: 0.75rem; font-family: monospace; color: rgba(255,255,255,0.5); margin-top: 10px; }
 .state-active { color: #34C759; font-weight: bold; }
 .state-offline { color: #FF3B30; font-weight: bold; }
 
-/* Modal Styles */
+/* NWS Statement Modal */
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
 .modal-content { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 20px; padding: 25px; width: 100%; max-width: 500px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
 .modal-text { font-family: monospace; font-size: 0.85rem; line-height: 1.4; color: #ddd; white-space: pre-wrap; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-top: 15px; max-height: 40vh; }
