@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather Tool - Apple Glassmorphism</title>
+    <title>Weather Intelligence</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="theme-blue">
     <div class="bg-shape shape1"></div>
     <div class="bg-shape shape2"></div>
 
@@ -18,60 +18,71 @@
         </div>
     </div>
 
-    <div class="container">
-        <nav class="top-nav">
-            <a href="../index.html" class="apple-btn nav-btn">← Menu</a>
-        </nav>
+    <nav class="top-nav">
+        <a href="../index.html" class="nav-btn">← Back to Menu</a>
+    </nav>
 
+    <div class="container">
         <main class="glass-panel main-dashboard">
             
             <div class="search-section">
-                <div class="autocomplete-container search-row">
+                <div class="search-row">
                     <input type="text" id="location-input" class="apple-input" placeholder="Search City or US ZIP...">
-                    <button class="apple-btn icon-btn" id="search-btn" onclick="executeSearch()" title="Search">🔍</button>
-                    <button class="apple-btn icon-btn" id="refresh-btn" onclick="fetchLiveWeather()" title="Refresh Data">🔄</button>
+                    <button class="icon-btn" onclick="executeSearch()" title="Search">🔍</button>
+                    <button class="icon-btn" onclick="fetchLiveWeather()" title="Refresh Data">🔄</button>
                 </div>
                 <div id="autocomplete-list" class="autocomplete-results"></div>
             </div>
 
             <div class="header-section">
-                <p id="location-display">System Standby</p>
+                <h1 id="location-display">System Standby</h1>
                 <div id="threat-indicator" class="threat-pill level-1">
-                    Threat Level: 1 (Clear)
+                    Level 1: Calm
                 </div>
+                <div id="fuel-indicator" class="fuel-badge hidden">⚠️ High Storm Fuel Detected</div>
             </div>
 
             <div class="weather-grid">
-                <div class="data-box"><span class="label">Temp</span><span class="value" id="val-temp">--°F</span></div>
-                <div class="data-box"><span class="label">Real Feel</span><span class="value" id="val-feel">--°F</span></div>
-                <div class="data-box"><span class="label">Wind Spd</span><span class="value" id="val-wind">-- mph</span></div>
+                <div class="data-box"><span class="label">Temperature</span><span class="value" id="val-temp">--°F</span></div>
+                <div class="data-box"><span class="label">Feels Like</span><span class="value" id="val-feel">--°F</span></div>
+                <div class="data-box"><span class="label">Wind Speed</span><span class="value" id="val-wind">-- mph</span></div>
                 <div class="data-box"><span class="label">Wind Dir</span><span class="value" id="val-wind-dir">--</span></div>
                 
                 <div class="data-box pro-data hidden"><span class="label">Dew Point</span><span class="value" id="val-dew">--°F</span></div>
                 <div class="data-box pro-data hidden"><span class="label">Humidity</span><span class="value" id="val-humidity">--%</span></div>
-                <div class="data-box pro-data hidden"><span class="label">Pressure</span><span class="value" id="val-pressure">-- inHg</span></div>
+                <div class="data-box pro-data hidden" style="grid-column: span 2;"><span class="label">Barometric Pressure</span><span class="value" id="val-pressure">-- inHg</span></div>
             </div>
 
-            <button class="apple-btn outline-btn toggle-pro" onclick="toggleProMode()">Enable Pro Mode</button>
+            <div class="toggle-container">
+                <span class="toggle-label">Pro Mode</span>
+                <label class="switch">
+                    <input type="checkbox" id="pro-toggle" onchange="toggleProMode()">
+                    <span class="slider round"></span>
+                </label>
+            </div>
 
-            <p class="timestamp-text">Last scanned: <span id="val-time">--:--</span></p>
+            <p class="timestamp-text">Last synced: <span id="val-time">--:--</span></p>
         </main>
 
-        <section class="glass-panel alerts-section">
-            <h2>Local NWS Bulletins</h2>
-            <div id="local-bulletins" class="bulletin-box">
-                <p class="alert-text-muted">No active bulletins for this location.</p>
-            </div>
-            <button id="view-all-bulletins-btn" class="apple-btn outline-btn hidden" onclick="openAllBulletins()" style="margin-top: 10px;">View All Alerts</button>
-        </section>
+        <aside class="sidebar">
+            
+            <section class="glass-panel">
+                <h2>Local NWS Bulletins</h2>
+                <div id="local-bulletins" class="bulletin-box">
+                    <p class="alert-text-muted">No active bulletins for this location.</p>
+                </div>
+                <button id="view-all-bulletins-btn" class="apple-btn outline-btn hidden" onclick="openAllBulletins()" style="margin-top: 15px;">View All Alerts</button>
+            </section>
 
-        <section class="glass-panel alerts-section" id="national-tornado-section">
-            <h2>National Tornado Tracker</h2>
-            <p class="alert-text-muted" style="font-size: 0.85em; margin-bottom: 10px;">Scanning US for active Tornado Warnings and PDS events.</p>
-            <div id="national-tornado-results" class="results-box bulletin-box">
-                Loading national data...
-            </div>
-        </section>
+            <section id="national-scanner-section" class="glass-panel pro-data hidden">
+                <h2>National Threat Scanner</h2>
+                <p class="alert-text-muted" style="font-size: 0.85em; margin-bottom: 10px;">Scanning US for Level 3, 4, and 5 events.</p>
+                <div id="national-scanner-results" class="bulletin-box results-box">
+                    Loading national data...
+                </div>
+            </section>
+
+        </aside>
     </div>
 
     <script src="app.js"></script>
