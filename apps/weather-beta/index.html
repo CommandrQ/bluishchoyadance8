@@ -31,21 +31,22 @@
         
         <div class="threat-awareness-bar"></div>
 
-        <div class="window-content">
-            <nav class="top-nav">
-                <a href="/menu.html" class="glass-btn back-btn">Menu</a>
-                <div class="search-container">
-                    <div class="search-input-wrapper">
-                        <svg class="ui-icon-sm search-icon"><use xlink:href="#icon-search"></use></svg>
-                        <input type="text" id="location-search" placeholder="Search city..." autocomplete="off">
-                        <button id="manual-refresh-btn" class="icon-btn" title="Refresh Data">
-                            <svg class="ui-icon-sm"><use xlink:href="#icon-refresh"></use></svg>
-                        </button>
-                    </div>
-                    <ul id="autocomplete-dropdown" class="dropdown hidden"></ul>
+        <nav class="top-nav">
+            <a href="/menu.html" class="glass-btn back-btn">Menu</a>
+            <div class="search-container">
+                <div class="search-input-wrapper">
+                    <svg class="ui-icon-sm search-icon"><use xlink:href="#icon-search"></use></svg>
+                    <input type="text" id="location-search" placeholder="Search city..." autocomplete="off">
+                    <button id="manual-refresh-btn" class="icon-btn" title="Refresh Data">
+                        <svg class="ui-icon-sm"><use xlink:href="#icon-refresh"></use></svg>
+                    </button>
                 </div>
-            </nav>
+                <ul id="autocomplete-dropdown" class="dropdown hidden"></ul>
+            </div>
+        </nav>
 
+        <div class="window-content">
+            
             <section class="status-header">
                 <span id="threat-badge" class="badge">LEVEL 1: CLEAR</span>
                 <h1 id="action-directive">MONITORING CONDITIONS</h1>
@@ -90,7 +91,7 @@
 
             <section class="scanner-section">
                 <h3>Live NWS Scanner</h3>
-                <p class="scanner-subtitle">Tracking Warnings & Watches</p>
+                <p class="scanner-subtitle">National Severe Hotspots</p>
                 <div id="scanner-feed" class="scroll-area">
                     <p class="empty-state">Scanning NWS network...</p>
                 </div>
