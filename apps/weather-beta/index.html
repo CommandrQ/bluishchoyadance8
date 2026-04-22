@@ -28,73 +28,77 @@
     </svg>
 
     <main class="centered-window">
-        <nav class="top-nav">
-            <a href="/menu.html" class="glass-btn back-btn">Menu</a>
-            
-            <div class="search-container">
-                <div class="search-input-wrapper">
-                    <svg class="ui-icon-sm search-icon"><use xlink:href="#icon-search"></use></svg>
-                    <input type="text" id="location-search" placeholder="Search city..." autocomplete="off">
-                    <button id="manual-refresh-btn" class="icon-btn" title="Refresh Data">
-                        <svg class="ui-icon-sm"><use xlink:href="#icon-refresh"></use></svg>
-                    </button>
-                </div>
-                <ul id="autocomplete-dropdown" class="dropdown hidden"></ul>
-            </div>
-        </nav>
-
-        <section class="status-header">
-            <span id="threat-badge" class="badge">LEVEL 1: CLEAR</span>
-            <h1 id="action-directive">MONITORING CONDITIONS</h1>
-            <p id="engine-tooltip">Current atmospheric conditions are stable.</p>
-        </section>
         
-        <section class="metrics-grid basic-metrics">
-            <div class="metric-card">
-                <small>Temp</small>
-                <p><span id="current-temp">--</span>°F</p>
-            </div>
-            <div class="metric-card">
-                <small>Wind</small>
-                <p><span id="current-wind">--</span> <span class="unit">mph</span> <span id="wind-dir" class="unit">--</span></p>
-            </div>
-            <div class="metric-card">
-                <small>Wind Gusts</small>
-                <p><span id="pro-gusts">--</span> <span class="unit">mph</span></p>
-            </div>
-        </section>
+        <div class="threat-awareness-bar"></div>
 
-        <div class="toggle-container">
-            <button id="toggle-advanced-btn" class="glass-btn-sm">Show Advanced Stats</button>
-        </div>
+        <div class="window-content">
+            <nav class="top-nav">
+                <a href="/menu.html" class="glass-btn back-btn">Menu</a>
+                <div class="search-container">
+                    <div class="search-input-wrapper">
+                        <svg class="ui-icon-sm search-icon"><use xlink:href="#icon-search"></use></svg>
+                        <input type="text" id="location-search" placeholder="Search city..." autocomplete="off">
+                        <button id="manual-refresh-btn" class="icon-btn" title="Refresh Data">
+                            <svg class="ui-icon-sm"><use xlink:href="#icon-refresh"></use></svg>
+                        </button>
+                    </div>
+                    <ul id="autocomplete-dropdown" class="dropdown hidden"></ul>
+                </div>
+            </nav>
 
-        <section id="advanced-metrics" class="metrics-grid advanced-metrics hidden">
-            <div class="metric-card">
-                <small>Humidity</small>
-                <p><span id="current-humidity">--</span>%</p>
-            </div>
-            <div class="metric-card">
-                <small>Pressure</small>
-                <p><span id="pro-pressure">--</span> <span class="unit">inHg</span></p>
-            </div>
-            <div class="metric-card">
-                <small>Dew Point</small>
-                <p><span id="pro-dewpoint">--</span>°F</p>
-            </div>
-        </section>
+            <section class="status-header">
+                <span id="threat-badge" class="badge">LEVEL 1: CLEAR</span>
+                <h1 id="action-directive">MONITORING CONDITIONS</h1>
+                <p id="engine-tooltip">Current atmospheric conditions are stable.</p>
+            </section>
+            
+            <section class="metrics-grid basic-metrics">
+                <div class="metric-card">
+                    <small>Temp</small>
+                    <p><span id="current-temp">--</span>°F</p>
+                </div>
+                <div class="metric-card">
+                    <small>Wind</small>
+                    <p><span id="current-wind">--</span> <span class="unit">mph</span> <span id="wind-dir" class="unit">--</span></p>
+                </div>
+                <div class="metric-card">
+                    <small>Wind Gusts</small>
+                    <p><span id="pro-gusts">--</span> <span class="unit">mph</span></p>
+                </div>
+            </section>
 
-        <hr class="glass-divider">
-
-        <section class="scanner-section">
-            <h3>Live NWS Scanner</h3>
-            <p class="scanner-subtitle">Tracking Warnings & Watches</p>
-            <div id="scanner-feed" class="scroll-area">
-                <p class="empty-state">Scanning NWS network...</p>
+            <div class="toggle-container">
+                <button id="toggle-advanced-btn" class="glass-btn-sm">Show Advanced Stats</button>
             </div>
-        </section>
 
-        <div class="scan-status-footer">
-            Data Scan: <span id="scan-state" class="state-active">ACTIVE</span> | Last Scan: <span id="last-scan-time">--:--</span>
+            <section id="advanced-metrics" class="metrics-grid advanced-metrics hidden">
+                <div class="metric-card">
+                    <small>Humidity</small>
+                    <p><span id="current-humidity">--</span>%</p>
+                </div>
+                <div class="metric-card">
+                    <small>Pressure</small>
+                    <p><span id="pro-pressure">--</span> <span class="unit">inHg</span></p>
+                </div>
+                <div class="metric-card">
+                    <small>Dew Point</small>
+                    <p><span id="pro-dewpoint">--</span>°F</p>
+                </div>
+            </section>
+
+            <hr class="glass-divider">
+
+            <section class="scanner-section">
+                <h3>Live NWS Scanner</h3>
+                <p class="scanner-subtitle">Tracking Warnings & Watches</p>
+                <div id="scanner-feed" class="scroll-area">
+                    <p class="empty-state">Scanning NWS network...</p>
+                </div>
+            </section>
+
+            <div class="scan-status-footer">
+                Data Scan: <span id="scan-state" class="state-active">ACTIVE</span> | Last Scan: <span id="last-scan-time">--:--</span>
+            </div>
         </div>
     </main>
 
