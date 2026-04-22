@@ -1,0 +1,140 @@
+:root {
+    --purple: #bc13fe;
+    --cyan: #05ffa1;
+    --glass: rgba(255, 255, 255, 0.08);
+    --blur: blur(20px);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background: #030008;
+    color: #fff;
+    font-family: 'Orbitron', sans-serif;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- FLUID TYPOGRAPHY --- */
+h1 { font-size: clamp(1.3rem, 7vw, 2.8rem); line-height: 1.2; margin-bottom: 1rem; }
+.sub-header { font-size: clamp(0.6rem, 2vw, 0.8rem); letter-spacing: 3px; opacity: 0.6; margin-bottom: 0.5rem; }
+.cyan-glow { color: var(--cyan); text-shadow: 0 0 15px var(--cyan); }
+
+/* --- THE VIEWPORT --- */
+.viewport {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 5;
+}
+
+.glass-window {
+    width: 100%;
+    max-width: 600px;
+    background: var(--glass);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: clamp(2rem, 10vw, 4rem) 1.5rem;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+/* --- THE SLICE BUTTON --- */
+.button-nexus { margin-top: 2rem; display: flex; justify-content: center; }
+
+.slice-trigger {
+    position: relative;
+    width: clamp(200px, 70vw, 300px);
+    height: 64px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    outline: none;
+}
+
+.slice-top, .slice-bottom {
+    position: absolute;
+    width: 100%;
+    height: 50%;
+    left: 0;
+    background: var(--purple);
+    overflow: hidden;
+    transition: transform 0.6s cubic-bezier(0.8, 0, 0.2, 1);
+}
+
+.slice-top { top: 0; }
+.slice-bottom { bottom: 0; }
+
+.slice-top span, .slice-bottom span {
+    position: absolute;
+    width: 100%;
+    height: 64px;
+    line-height: 64px;
+    left: 0;
+    font-weight: 900;
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+.slice-top span { top: 0; }
+.slice-bottom span { bottom: 0; }
+
+/* Animation States */
+.slicing .slice-top { transform: translateY(-120%) rotate(-2deg); opacity: 0; }
+.slicing .slice-bottom { transform: translateY(120%) rotate(2deg); opacity: 0; }
+
+@keyframes shake {
+    0%, 100% { transform: translate(0,0); }
+    20% { transform: translate(-8px, 4px); }
+    40% { transform: translate(8px, -4px); }
+    60% { transform: translate(-8px, -4px); }
+    80% { transform: translate(8px, 4px); }
+}
+.window-shake { animation: shake 0.15s infinite; }
+
+/* --- DYNAMIC FOOTER --- */
+.vanguard-footer {
+    padding: 20px;
+    text-align: center;
+    z-index: 10;
+}
+
+.pulse-text {
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    color: #fff;
+    animation: pulseWhite 2s infinite ease-in-out;
+    transition: opacity 0.5s ease;
+}
+
+@keyframes pulseWhite {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; text-shadow: 0 0 10px #fff; }
+}
+
+/* --- BACKGROUNDS --- */
+.grid-container { position: fixed; top: 0; width: 100%; height: 100%; perspective: 1000px; z-index: -1; }
+.grid {
+    position: absolute; bottom: -30%; width: 200%; height: 100%; left: -50%;
+    background-image: linear-gradient(transparent 0%, var(--purple) 2%, transparent 3%), linear-gradient(90deg, transparent 0%, var(--cyan) 2%, transparent 3%);
+    background-size: 40px 40px; transform: rotateX(60deg); opacity: 0.3;
+}
+.scanlines {
+    position: fixed; top: 0; width: 100%; height: 100%;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+    background-size: 100% 3px; pointer-events: none; z-index: 20;
+}
+#fade-overlay { position: fixed; top: 0; width: 100%; height: 100%; background: #000; opacity: 0; pointer-events: none; transition: 1s; z-index: 100; }
+#fade-overlay.active { opacity: 1; }
