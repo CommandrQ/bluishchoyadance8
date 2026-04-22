@@ -20,8 +20,19 @@
 
     <div class="container">
         <main class="glass-panel main-dashboard">
-            <h1 id="city-name">Loading Location...</h1>
-            <div id="threat-indicator" class="threat-pill">Scanning Threat Level...</div>
+            
+            <div class="search-section">
+                <input type="text" id="manual-location-input" class="apple-input" placeholder="Enter US ZIP Code or City...">
+                <button class="apple-btn" onclick="manualSearch()">Scan Location</button>
+            </div>
+
+            <h1 id="city-name">System Standby</h1>
+            <div id="threat-indicator" class="threat-pill" style="background: rgba(255,255,255,0.2);">Awaiting Location Input...</div>
+
+            <div class="condition-box">
+                <span class="label">Current Conditions</span>
+                <span class="value" id="val-condition">--</span>
+            </div>
 
             <div class="weather-grid">
                 <div class="data-box">
@@ -45,9 +56,9 @@
             <button class="apple-btn outline-btn" onclick="toggleAdvanced()">View Advanced Data</button>
             
             <div id="advanced-data" class="advanced-section hidden">
-                <p id="local-alert-text" class="alert-text-muted">No active local NWS warnings.</p>
+                <p id="local-alert-text" class="alert-text-muted">No location set.</p>
                 <div style="font-size: 0.85em; color: rgba(255,255,255,0.7); margin-top: 10px;">
-                    Refresh Rate: <span id="val-refresh">Calculating...</span><br>
+                    Refresh Rate: <span id="val-refresh">Paused</span><br>
                     Last Updated: <span id="val-time">--:--</span>
                 </div>
             </div>
@@ -68,7 +79,7 @@
                     <option value="MN">Minnesota</option>
                     <option value="IL">Illinois</option>
                     <option value="KY">Kentucky</option>
-                    </select>
+                </select>
                 <button class="apple-btn" onclick="fetchStateAlerts()">Search</button>
             </div>
             <div id="state-alerts-results" class="results-box">
