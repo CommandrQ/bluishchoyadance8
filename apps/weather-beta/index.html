@@ -3,112 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>StormScanner | Live Tornado Tracker</title>
-    
+    <title>StormScanner | Decision Engine</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
-    
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body class="threat-level-1">
 
     <div class="blob-wrapper">
         <div class="blob b1"></div>
         <div class="blob b2"></div>
-        <div class="blob b3"></div>
     </div>
 
     <div id="offline-banner" class="hidden-banner">⚠️ OFFLINE MODE: Showing Last Known Data</div>
 
-    <svg style="display: none;">
-        <symbol id="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </symbol>
-        <symbol id="icon-fuel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/>
-            <circle cx="12" cy="11" r="3"/>
-        </symbol>
-        <symbol id="icon-tornado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 4H3l2 2.5L3 9h18l-2-2.5L21 4z"/>
-            <path d="M19 13H5l1.5 2L5 17h14l-1.5-2 1.5-2z"/>
-            <path d="M16 19H8l1 2-1 1h8l-1-1 1-2z"/>
-            <path d="M12 9v4"/>
-        </symbol>
-    </svg>
-
-    <nav class="top-nav">
-        <div class="nav-inner">
-            <a href="/https://commandrq.github.io/bluishchoyadance8/menu.html" class="glass-btn" style="text-decoration: none; display: flex; align-items: center;">Menu</a>
-            
-            <div class="search-wrapper">
-                <svg class="ui-icon-sm"><use xlink:href="#icon-search"></use></svg>
-                <input type="text" id="location-search" placeholder="Enter City or ZIP..." autocomplete="off">
+    <main class="centered-window">
+        <nav class="top-nav">
+            <a href="/menu.html" class="glass-btn back-btn">Menu</a>
+            <div class="search-container">
+                <input type="text" id="location-search" placeholder="Search city..." autocomplete="off">
+                <ul id="autocomplete-dropdown" class="dropdown hidden"></ul>
             </div>
-        </div>
-    </nav>
+        </nav>
 
-    <main class="dashboard-grid">
+        <section class="status-header">
+            <span id="threat-badge" class="badge">LEVEL 1: CLEAR</span>
+            <h1 id="action-directive">MONITORING CONDITIONS</h1>
+            <p id="engine-tooltip">Current atmospheric conditions are stable.</p>
+        </section>
         
-        <section class="panel main-panel">
-            <div class="status-header">
-                <span id="threat-badge" class="badge">LEVEL 1: CLEAR</span>
-                <h1 id="action-directive">MONITORING CONDITIONS</h1>
+        <section class="metrics-grid basic-metrics">
+            <div class="metric-card">
+                <small>Temperature</small>
+                <p><span id="current-temp">--</span>°F</p>
             </div>
-            
-            <div class="local-metrics">
-                <div class="metric-card">
-                    <small>Temperature</small>
-                    <p><span id="current-temp">--</span>°F</p>
-                </div>
-                <div class="metric-card">
-                    <small>Wind Gusts</small>
-                    <p><span id="current-wind">--</span> mph</p>
-                </div>
-                <div id="fuel-badge" class="badge fuel-hidden">
-                    <svg class="ui-icon-sm"><use xlink:href="#icon-fuel"></use></svg> STORM FUEL
-                </div>
+            <div class="metric-card">
+                <small>Wind</small>
+                <p><span id="current-wind">--</span> mph <span id="wind-dir" class="unit">--</span></p>
             </div>
-
-            <div class="decision-box">
-                <p id="engine-tooltip">Current atmospheric conditions are stable. No active NWS warnings detected.</p>
-                <button class="glass-btn-sm" onclick="toggleProMode()">Toggle Pro Mode</button>
-            </div>
-
-            <div id="pro-mode-overlay" class="pro-overlay hidden">
-                <div class="pro-header">
-                    <h3>Atmospheric Physics</h3>
-                </div>
-                <ul class="pro-grid">
-                    <li><small>CAPE</small><p><span id="pro-cape">0</span> <span class="unit">J/kg</span></p></li>
-                    <li><small>Dew Point</small><p><span id="pro-dewpoint">0</span>°F</p></li>
-                    <li><small>Pressure</small><p><span id="pro-pressure">0.00</span> <span class="unit">inHg</span></p></li>
-                    <li><small>Humidity</small><p><span id="pro-humidity">0</span>%</p></li>
-                </ul>
+            <div class="metric-card">
+                <small>Humidity</small>
+                <p><span id="current-humidity">--</span>%</p>
             </div>
         </section>
 
-        <div class="right-stack">
-            
-            <section class="panel radar-panel">
-                <div class="radar-header">
-                    <h3>Live Radar</h3>
-                    <span id="radar-timestamp" class="timestamp">Loading...</span>
-                </div>
-                <div id="radar-map" class="map-container"></div>
-            </section>
-
-            <section class="panel scanner-panel">
-                <h3>National Tornado Scanner</h3>
-                <div id="scanner-feed" class="scroll-area">
-                    <p class="empty-state">Scanning NWS network...</p>
-                </div>
-            </section>
+        <div class="toggle-container">
+            <button id="toggle-advanced-btn" class="glass-btn-sm">Show Advanced Stats</button>
         </div>
-        
+
+        <section id="advanced-metrics" class="metrics-grid advanced-metrics hidden">
+            <div class="metric-card">
+                <small>Wind Gusts</small>
+                <p><span id="pro-gusts">--</span> mph</p>
+            </div>
+            <div class="metric-card">
+                <small>Pressure</small>
+                <p><span id="pro-pressure">--</span> inHg</p>
+            </div>
+            <div class="metric-card">
+                <small>Dew Point</small>
+                <p><span id="pro-dewpoint">--</span>°F</p>
+            </div>
+        </section>
+
+        <hr class="glass-divider">
+
+        <section class="scanner-section">
+            <h3>Live NWS Scanner</h3>
+            <p class="scanner-subtitle">Tracking Warnings & Watches</p>
+            <div id="scanner-feed" class="scroll-area">
+                <p class="empty-state">Scanning NWS network...</p>
+            </div>
+        </section>
     </main>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
