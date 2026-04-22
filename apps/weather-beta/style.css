@@ -1,1 +1,142 @@
+/* ==========================================
+   1. BASE LAYOUT & TYPOGRAPHY
+   ========================================== */
+body { 
+    font-family: monospace; 
+    padding: 20px; 
+    background: #111; 
+    color: #0f0; 
+    max-width: 600px; 
+    margin: auto; 
+}
 
+h2, h3 { 
+    border-bottom: 1px solid #0f0; 
+    padding-bottom: 5px; 
+}
+
+.box { 
+    border: 1px solid #0f0; 
+    padding: 15px; 
+    margin-bottom: 20px; 
+    background: #1a1a1a; 
+}
+
+/* ==========================================
+   2. INPUTS & BUTTONS
+   ========================================== */
+input, select, button { 
+    padding: 10px; 
+    margin: 5px 0; 
+    background: #222; 
+    color: #0f0; 
+    border: 1px solid #0f0; 
+    width: 100%; 
+    box-sizing: border-box; 
+    font-family: monospace;
+}
+
+button { 
+    cursor: pointer; 
+    font-weight: bold; 
+}
+
+button:hover { 
+    background: #0f0; 
+    color: #111; 
+}
+
+/* ==========================================
+   3. THREAT LEVEL COLORS
+   ========================================== */
+.threat-green { 
+    color: #0f0; 
+    font-weight: bold; 
+}
+
+.threat-yellow { 
+    color: #ff0; 
+    font-weight: bold; 
+}
+
+.threat-red { 
+    color: #f00; 
+    font-weight: bold; 
+}
+
+/* ==========================================
+   4. EDUCATIONAL TOOLTIPS
+   ========================================== */
+.tooltip { 
+    border-bottom: 1px dotted #0f0; 
+    cursor: help; 
+    position: relative; 
+    display: inline-block; 
+}
+
+.tooltip .tooltiptext { 
+    visibility: hidden; 
+    width: 220px; 
+    background-color: #222; 
+    color: #fff; 
+    text-align: center; 
+    padding: 8px; 
+    border: 1px solid #0f0; 
+    position: absolute; 
+    z-index: 10; /* Keep high so it overlaps other elements */
+    bottom: 125%; 
+    left: 50%; 
+    margin-left: -110px; 
+    font-size: 0.9em; 
+    box-shadow: 0px 4px 6px rgba(0,0,0,0.5);
+}
+
+.tooltip:hover .tooltiptext { 
+    visibility: visible; 
+}
+
+/* ==========================================
+   5. AUTOCOMPLETE DROPDOWN
+   ========================================== */
+.autocomplete-container {
+    position: relative;
+    width: 100%;
+}
+
+.autocomplete-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #222;
+    border: 1px solid #0f0;
+    border-top: none;
+    z-index: 1000; /* Ensure this floats above the rest of the form */
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.autocomplete-item {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #333;
+    font-size: 0.9em;
+}
+
+.autocomplete-item:hover {
+    background: #0f0;
+    color: #111;
+}
+
+/* Custom scrollbar for the autocomplete dropdown to match the retro theme */
+.autocomplete-results::-webkit-scrollbar { 
+    width: 8px; 
+}
+
+.autocomplete-results::-webkit-scrollbar-thumb { 
+    background: #0f0; 
+}
+
+.autocomplete-results::-webkit-scrollbar-track {
+    background: #111;
+}
