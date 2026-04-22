@@ -1,0 +1,32 @@
+{
+  "apps": [
+    {
+      "name": "Blog",
+      "iconValue": "images/icons/blog.png",
+      "iconType": "image",
+      "link": "https://substack.com/@commandrq",
+      "external": true
+    },
+    {
+      "name": "Social Media",
+      "iconValue": "images/icons/tiktok.png",
+      "iconType": "image",
+      "link": "https://www.tiktok.com/@commandr_q",
+      "external": true
+    },
+    {
+      "name": "Dreamscape Drift",
+      "iconValue": "images/icons/drift.png",
+      "iconType": "image",
+      "link": "apps/drift.html",
+      "external": false
+    },
+    {
+      "name": "Music Player",
+      "iconValue": "images/icons/tunes.png",
+      "iconType": "image",
+      "link": "apps/tunes.html",
+      "external": false
+    }
+  ]
+}
