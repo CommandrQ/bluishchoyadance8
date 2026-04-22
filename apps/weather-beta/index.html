@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>StormScanner | Live Tornado Tracker</title>
+    
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body class="threat-level-1">
@@ -26,11 +29,18 @@
             <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/>
             <circle cx="12" cy="11" r="3"/>
         </symbol>
+        <symbol id="icon-tornado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 4H3l2 2.5L3 9h18l-2-2.5L21 4z"/>
+            <path d="M19 13H5l1.5 2L5 17h14l-1.5-2 1.5-2z"/>
+            <path d="M16 19H8l1 2-1 1h8l-1-1 1-2z"/>
+            <path d="M12 9v4"/>
+        </symbol>
     </svg>
 
     <nav class="top-nav">
         <div class="nav-inner">
-            <button class="glass-btn">Menu</button>
+            <a href="/menu.html" class="glass-btn" style="text-decoration: none; display: flex; align-items: center;">Menu</a>
+            
             <div class="search-wrapper">
                 <svg class="ui-icon-sm"><use xlink:href="#icon-search"></use></svg>
                 <input type="text" id="location-search" placeholder="Enter City or ZIP..." autocomplete="off">
@@ -39,6 +49,7 @@
     </nav>
 
     <main class="dashboard-grid">
+        
         <section class="panel main-panel">
             <div class="status-header">
                 <span id="threat-badge" class="badge">LEVEL 1: CLEAR</span>
@@ -78,6 +89,7 @@
         </section>
 
         <div class="right-stack">
+            
             <section class="panel radar-panel">
                 <div class="radar-header">
                     <h3>Live Radar</h3>
@@ -93,6 +105,7 @@
                 </div>
             </section>
         </div>
+        
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
