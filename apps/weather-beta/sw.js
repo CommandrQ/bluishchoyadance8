@@ -1,4 +1,4 @@
-const CACHE_NAME = 'storm-tracker-beta-v1';
+const CACHE_NAME = 'storm-tracker-beta-v2';
 const ASSETS_TO_CACHE = [
   '/apps/weather-beta/index.html',
   '/apps/weather-beta/style.css',
@@ -9,7 +9,7 @@ const ASSETS_TO_CACHE = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('Shields Up: Core beta assets cached.');
+      console.log('Shields Up: Core assets cached.');
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
@@ -29,15 +29,10 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET' || event.request.url.includes('api.weather.gov') || event.request.url.includes('api.open-meteo.com')) {
-    return;
-  }
-  
+  if (event.request.method !== 'GET' || event.request.url.includes('api.weather.gov') || event.request.url.includes('api.open-meteo.com')) return;
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      return cachedResponse || fetch(event.request).catch(() => {
-        console.warn("Network lost. Falling back to cache.");
-      });
+      return cachedResponse || fetch(event.request).catch(() => console.warn("Network lost. Serving cache."));
     })
   );
 });
