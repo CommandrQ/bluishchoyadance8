@@ -2,89 +2,100 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather Intelligence</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>StormScanner | Live Tornado Tracker</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
-<body class="theme-blue">
-    <div class="bg-shape shape1"></div>
-    <div class="bg-shape shape2"></div>
+<body class="threat-level-1">
 
-    <div id="bulletin-modal" class="modal-overlay hidden">
-        <div class="modal-glass">
-            <h3 class="modal-title" id="modal-alert-title">Alert Details</h3>
-            <div id="modal-bulletin-list" class="modal-scroll-area"></div>
-            <button class="apple-btn close-btn" onclick="closeBulletinModal()">Close</button>
-        </div>
+    <div class="blob-wrapper">
+        <div class="blob b1"></div>
+        <div class="blob b2"></div>
+        <div class="blob b3"></div>
     </div>
+
+    <div id="offline-banner" class="hidden-banner">⚠️ OFFLINE MODE: Showing Last Known Data</div>
+
+    <svg style="display: none;">
+        <symbol id="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </symbol>
+        <symbol id="icon-fuel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/>
+            <circle cx="12" cy="11" r="3"/>
+        </symbol>
+    </svg>
 
     <nav class="top-nav">
-        <a href="../index.html" class="nav-btn">← Back to Menu</a>
+        <div class="nav-inner">
+            <button class="glass-btn">Menu</button>
+            <div class="search-wrapper">
+                <svg class="ui-icon-sm"><use xlink:href="#icon-search"></use></svg>
+                <input type="text" id="location-search" placeholder="Enter City or ZIP..." autocomplete="off">
+            </div>
+        </div>
     </nav>
 
-    <div class="container">
-        <main class="glass-panel main-dashboard">
+    <main class="dashboard-grid">
+        <section class="panel main-panel">
+            <div class="status-header">
+                <span id="threat-badge" class="badge">LEVEL 1: CLEAR</span>
+                <h1 id="action-directive">MONITORING CONDITIONS</h1>
+            </div>
             
-            <div class="search-section">
-                <div class="search-row">
-                    <input type="text" id="location-input" class="apple-input" placeholder="Search City or US ZIP...">
-                    <button class="icon-btn" onclick="executeSearch()" title="Search">🔍</button>
-                    <button class="icon-btn" onclick="fetchLiveWeather()" title="Refresh Data">🔄</button>
+            <div class="local-metrics">
+                <div class="metric-card">
+                    <small>Temperature</small>
+                    <p><span id="current-temp">--</span>°F</p>
                 </div>
-                <div id="autocomplete-list" class="autocomplete-results"></div>
-            </div>
-
-            <div class="header-section">
-                <h1 id="location-display">System Standby</h1>
-                <div id="threat-indicator" class="threat-pill level-1">
-                    Level 1: Calm
+                <div class="metric-card">
+                    <small>Wind Gusts</small>
+                    <p><span id="current-wind">--</span> mph</p>
                 </div>
-                <div id="fuel-indicator" class="fuel-badge hidden">⚠️ High Storm Fuel Detected</div>
-            </div>
-
-            <div class="weather-grid">
-                <div class="data-box"><span class="label">Temperature</span><span class="value" id="val-temp">--°F</span></div>
-                <div class="data-box"><span class="label">Feels Like</span><span class="value" id="val-feel">--°F</span></div>
-                <div class="data-box"><span class="label">Wind Speed</span><span class="value" id="val-wind">-- mph</span></div>
-                <div class="data-box"><span class="label">Wind Dir</span><span class="value" id="val-wind-dir">--</span></div>
-                
-                <div class="data-box pro-data hidden"><span class="label">Dew Point</span><span class="value" id="val-dew">--°F</span></div>
-                <div class="data-box pro-data hidden"><span class="label">Humidity</span><span class="value" id="val-humidity">--%</span></div>
-                <div class="data-box pro-data hidden" style="grid-column: span 2;"><span class="label">Barometric Pressure</span><span class="value" id="val-pressure">-- inHg</span></div>
-            </div>
-
-            <div class="toggle-container">
-                <span class="toggle-label">Pro Mode</span>
-                <label class="switch">
-                    <input type="checkbox" id="pro-toggle" onchange="toggleProMode()">
-                    <span class="slider round"></span>
-                </label>
-            </div>
-
-            <p class="timestamp-text">Last synced: <span id="val-time">--:--</span></p>
-        </main>
-
-        <aside class="sidebar">
-            
-            <section class="glass-panel">
-                <h2>Local NWS Bulletins</h2>
-                <div id="local-bulletins" class="bulletin-box">
-                    <p class="alert-text-muted">No active bulletins for this location.</p>
+                <div id="fuel-badge" class="badge fuel-hidden">
+                    <svg class="ui-icon-sm"><use xlink:href="#icon-fuel"></use></svg> STORM FUEL
                 </div>
-                <button id="view-all-bulletins-btn" class="apple-btn outline-btn hidden" onclick="openAllBulletins()" style="margin-top: 15px;">View All Alerts</button>
+            </div>
+
+            <div class="decision-box">
+                <p id="engine-tooltip">Current atmospheric conditions are stable. No active NWS warnings detected.</p>
+                <button class="glass-btn-sm" onclick="toggleProMode()">Toggle Pro Mode</button>
+            </div>
+
+            <div id="pro-mode-overlay" class="pro-overlay hidden">
+                <div class="pro-header">
+                    <h3>Atmospheric Physics</h3>
+                </div>
+                <ul class="pro-grid">
+                    <li><small>CAPE</small><p><span id="pro-cape">0</span> <span class="unit">J/kg</span></p></li>
+                    <li><small>Dew Point</small><p><span id="pro-dewpoint">0</span>°F</p></li>
+                    <li><small>Pressure</small><p><span id="pro-pressure">0.00</span> <span class="unit">inHg</span></p></li>
+                    <li><small>Humidity</small><p><span id="pro-humidity">0</span>%</p></li>
+                </ul>
+            </div>
+        </section>
+
+        <div class="right-stack">
+            <section class="panel radar-panel">
+                <div class="radar-header">
+                    <h3>Live Radar</h3>
+                    <span id="radar-timestamp" class="timestamp">Loading...</span>
+                </div>
+                <div id="radar-map" class="map-container"></div>
             </section>
 
-            <section id="national-scanner-section" class="glass-panel pro-data hidden">
-                <h2>National Threat Scanner</h2>
-                <p class="alert-text-muted" style="font-size: 0.85em; margin-bottom: 10px;">Scanning US for Level 3, 4, and 5 events.</p>
-                <div id="national-scanner-results" class="bulletin-box results-box">
-                    Loading national data...
+            <section class="panel scanner-panel">
+                <h3>National Tornado Scanner</h3>
+                <div id="scanner-feed" class="scroll-area">
+                    <p class="empty-state">Scanning NWS network...</p>
                 </div>
             </section>
+        </div>
+    </main>
 
-        </aside>
-    </div>
-
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
