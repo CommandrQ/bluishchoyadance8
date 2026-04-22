@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>StormScanner | Decision Engine</title>
+    <title>StormScanner | Modular Engine</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
@@ -27,33 +27,25 @@
         </symbol>
     </svg>
 
+    <nav class="top-nav">
+        <a href="/menu.html" class="glass-btn back-btn">Menu</a>
+        <div class="search-container">
+            <div class="search-input-wrapper">
+                <svg class="ui-icon-sm search-icon"><use xlink:href="#icon-search"></use></svg>
+                <input type="text" id="location-search" placeholder="Search city to arm engine..." autocomplete="off">
+                <button id="manual-refresh-btn" class="icon-btn" title="Refresh Data">
+                    <svg class="ui-icon-sm"><use xlink:href="#icon-refresh"></use></svg>
+                </button>
+            </div>
+            <ul id="autocomplete-dropdown" class="dropdown hidden"></ul>
+        </div>
+    </nav>
+
     <main class="centered-window">
         
-        <div class="threat-awareness-bar"></div>
-
-        <nav class="top-nav">
-            <a href="/menu.html" class="glass-btn back-btn">Menu</a>
-            <div class="search-container">
-                <div class="search-input-wrapper">
-                    <svg class="ui-icon-sm search-icon"><use xlink:href="#icon-search"></use></svg>
-                    <input type="text" id="location-search" placeholder="Search city to arm engine..." autocomplete="off">
-                    <button id="manual-refresh-btn" class="icon-btn" title="Force Refresh Data">
-                        <svg class="ui-icon-sm"><use xlink:href="#icon-refresh"></use></svg>
-                    </button>
-                </div>
-                <ul id="autocomplete-dropdown" class="dropdown hidden"></ul>
-            </div>
-        </nav>
-
-        <div class="window-content">
-            
-            <section class="status-header">
-                <span id="threat-badge" class="badge">SYSTEM READY</span>
-                <h1 id="action-directive">AWAITING LOCATION</h1>
-                <p id="engine-tooltip">Search a city to initialize the Decision Engine.</p>
-            </section>
-            
-            <section class="metrics-grid basic-metrics">
+        <section class="panel weather-panel">
+            <h2 class="section-title">Local Atmosphere</h2>
+            <div class="metrics-grid basic-metrics">
                 <div class="metric-card">
                     <small>Temp</small>
                     <p><span id="current-temp">--</span>°F</p>
@@ -63,16 +55,16 @@
                     <p><span id="current-wind">--</span> <span class="unit">mph</span> <span id="wind-dir" class="unit">--</span></p>
                 </div>
                 <div class="metric-card">
-                    <small>Wind Gusts</small>
-                    <p><span id="pro-gusts">--</span> <span class="unit">mph</span></p>
+                    <small>Status</small>
+                    <p id="weather-status" style="font-size: 1.1rem; padding-top: 5px;">Awaiting...</p>
                 </div>
-            </section>
-
-            <div class="toggle-container">
-                <button id="toggle-advanced-btn" class="glass-btn-sm hidden">Show Advanced Stats</button>
             </div>
 
-            <section id="advanced-metrics" class="metrics-grid advanced-metrics hidden">
+            <div class="toggle-container">
+                <button id="toggle-advanced-btn" class="glass-btn-sm hidden">Show Advanced Metrics</button>
+            </div>
+
+            <div id="advanced-metrics" class="metrics-grid advanced-metrics hidden">
                 <div class="metric-card">
                     <small>Humidity</small>
                     <p><span id="current-humidity">--</span>%</p>
@@ -85,21 +77,33 @@
                     <small>Dew Point</small>
                     <p><span id="pro-dewpoint">--</span>°F</p>
                 </div>
-            </section>
+            </div>
+        </section>
 
-            <hr class="glass-divider">
+        <hr class="glass-divider">
 
-            <section class="scanner-section">
-                <h3>Live NWS Scanner</h3>
-                <p class="scanner-subtitle">National Severe Hotspots</p>
+        <div class="bottom-split">
+            
+            <section class="panel scanner-panel">
+                <h2 class="section-title">National Active Alerts</h2>
                 <div id="scanner-feed" class="scroll-area">
                     <p class="empty-state">Awaiting system initialization...</p>
                 </div>
             </section>
 
-            <div class="scan-status-footer">
-                Data Scan: <span id="scan-state" class="state-idle">IDLE</span> | Last Scan: <span id="last-scan-time">--:--</span>
-            </div>
+            <section class="panel decision-panel heartbeat-target">
+                <h2 class="section-title">Decision Engine</h2>
+                <div class="decision-content">
+                    <span id="threat-badge" class="badge badge-pulse">STANDBY</span>
+                    <h1 id="action-directive">AWAITING LOC</h1>
+                    <p id="engine-tooltip">Engine disarmed. Please search a location.</p>
+                </div>
+            </section>
+
+        </div>
+
+        <div class="scan-status-footer">
+            Data Scan: <span id="scan-state" class="state-idle">IDLE</span> | Last Scan: <span id="last-scan-time">--:--</span>
         </div>
     </main>
 
