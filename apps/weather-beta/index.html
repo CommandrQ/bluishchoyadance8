@@ -1,1 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Level 1 Weather Tool (Beta)</title>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
+    <h2>Live Threat Feed (Standalone Beta)</h2>
+
+    <div class="box" id="auto-data">
+        <h3>Local Baseline Data</h3>
+        <p>Scanning atmosphere...</p>
+    </div>
+
+    <div class="box">
+        <h3>Submit Ground Report</h3>
+        
+        <div class="autocomplete-container">
+            <input type="text" id="location-input" placeholder="Search US City (e.g., Dallas, TX)">
+            <div id="autocomplete-list" class="autocomplete-results"></div>
+        </div>
+        
+        <select id="threat">
+            <option value="GREEN">GREEN - All Clear</option>
+            <option value="YELLOW">YELLOW - Be Aware</option>
+            <option value="RED">RED - Imminent Danger</option>
+        </select>
+        
+        <input type="text" id="chatter" placeholder="What are you seeing? (e.g., Wall cloud forming...)">
+        
+        <button onclick="postMockUpdate()">Broadcast Report</button>
+    </div>
+
+    <div class="box">
+        <h3>Local Spotter Feed</h3>
+        <div id="feed-data">Loading feed...</div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
