@@ -2,15 +2,14 @@
 const NWS_LOCAL_URL = 'https://api.weather.gov/alerts/active?event=Tornado%20Warning,Severe%20Thunderstorm%20Warning,Tornado%20Watch';
 const NWS_NATIONAL_URL = 'https://api.weather.gov/alerts/active?event=Tornado%20Warning,Severe%20Thunderstorm%20Warning,Tornado%20Watch';
 
-// Store statements in memory to avoid redundant API calls
 window.scannerStatements = [];
 
-// --- SERVICE WORKER ---
+// --- SERVICE WORKER REGISTRATION (BETA PATH) ---
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => navigator.serviceWorker.register('/apps/weather-beta/sw.js').catch(err => console.error(err)));
 }
 
-// --- ONLINE/OFFLINE RADAR LOGIC ---
+// --- ONLINE/OFFLINE SHIELD LOGIC ---
 window.addEventListener('online', updateNetworkStatus);
 window.addEventListener('offline', updateNetworkStatus);
 
@@ -43,7 +42,6 @@ document.getElementById('toggle-advanced-btn').addEventListener('click', (e) => 
 });
 
 document.getElementById('manual-refresh-btn').addEventListener('click', () => {
-    // Spin icon briefly to show physical action
     const btn = document.getElementById('manual-refresh-btn');
     btn.style.transform = 'rotate(180deg)';
     btn.style.transition = 'transform 0.3s ease';
@@ -103,7 +101,7 @@ function selectLocation(lat, lon, name) {
 
 // --- MASTER REFRESH ENGINE ---
 async function refreshDashboard() {
-    if (!navigator.onLine) return; // Don't attempt fetch if physically offline
+    if (!navigator.onLine) return; 
 
     const lat = localStorage.getItem('last_lat') || "37.9887"; 
     const lon = localStorage.getItem('last_lon') || "-85.9589";
@@ -121,7 +119,6 @@ async function refreshDashboard() {
     renderUI(decision, localAtmosphere);
     processNationalScanner(nationalAlerts || []);
     
-    // Update the "Radar" Scan Footer
     document.getElementById('last-scan-time').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     
     startHeartbeat(decision.finalThreatLevel);
@@ -139,7 +136,8 @@ async function fetchLocalWarnings(lat, lon) {
 
 async function fetchAtmosphere(lat, lon) {
     try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,dew_point_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m,surface_pressure,cape&wind_speed_unit=mph&timezone=auto`;
+        // LOGIC FIX: Hardcoded temperature_unit=fahrenheit to prevent Celsius default
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,dew_point_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m,surface_pressure,cape&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto`;
         const res = await fetch(url);
         const data = await res.json();
         const cur = data.current;
@@ -214,18 +212,20 @@ function renderUI(decision, atm) {
     document.getElementById('engine-tooltip').innerText = decision.tooltipText;
 
     if (atm) {
+        // Basic Stats (Gusts Included)
         document.getElementById('current-temp').innerText = Math.round(atm.temp);
         document.getElementById('current-wind').innerText = Math.round(atm.windSpeed);
         document.getElementById('wind-dir').innerText = atm.windDir;
-        document.getElementById('current-humidity').innerText = Math.round(atm.humidity);
-        
         document.getElementById('pro-gusts').innerText = Math.round(atm.windGusts);
+        
+        // Advanced Stats (Humidity Included)
+        document.getElementById('current-humidity').innerText = Math.round(atm.humidity);
         document.getElementById('pro-pressure').innerText = atm.pressureInHg;
         document.getElementById('pro-dewpoint').innerText = Math.round(atm.dewPoint);
     }
 }
 
-// --- NATIONAL SCANNER & STATEMENT MODAL LOGIC ---
+// --- NATIONAL SCANNER & MODAL LOGIC ---
 function processNationalScanner(features) {
     const feed = document.getElementById('scanner-feed');
     if (!features || features.length === 0) {
@@ -233,7 +233,6 @@ function processNationalScanner(features) {
         return;
     }
 
-    // Logic: Map the API data into a clean structure and save to global array for the Modal
     window.scannerStatements = features.map(f => {
         const p = f.properties;
         const text = (p.description + "\n\n" + (p.instruction || "")).toUpperCase();
@@ -276,11 +275,9 @@ function getSortWeight(event, text) {
     return 1;
 }
 
-// Modal Functions
 function openStatementModal(index) {
     const statement = window.scannerStatements[index];
     document.getElementById('modal-title').innerText = statement.event;
-    // We use innerText to ensure raw NWS spacing is respected via CSS white-space: pre-wrap
     document.getElementById('modal-body').innerText = statement.rawText;
     document.getElementById('statement-modal').classList.remove('hidden');
 }
