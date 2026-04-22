@@ -1,10 +1,10 @@
 // --- CONFIGURATION ---
-const NWS_LOCAL_URL = 'https://api.weather.gov/alerts/active?event=Tornado%20Warning,Severe%20Thunderstorm%20Warning,Tornado%20Watch';
+// The national URL grabs all active severe warnings nationwide.
 const NWS_NATIONAL_URL = 'https://api.weather.gov/alerts/active?event=Tornado%20Warning,Severe%20Thunderstorm%20Warning,Tornado%20Watch';
 
 window.scannerStatements = [];
 
-// --- SERVICE WORKER REGISTRATION (BETA PATH) ---
+// --- SERVICE WORKER REGISTRATION ---
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => navigator.serviceWorker.register('/apps/weather-beta/sw.js').catch(err => console.error(err)));
 }
@@ -127,16 +127,17 @@ async function refreshDashboard() {
 // --- FETCH FUNCTIONS ---
 async function fetchLocalWarnings(lat, lon) {
     try {
-        const res = await fetch(NWS_LOCAL_URL, { headers: { 'Accept': 'application/geo+json' }});
+        // LOGIC FIX: Dynamically query exact coordinates to isolate the local threat level
+        const localUrl = `https://api.weather.gov/alerts/active?point=${lat},${lon}`;
+        const res = await fetch(localUrl, { headers: { 'Accept': 'application/geo+json' }});
         if (!res.ok) throw new Error("Local NWS Error");
         const data = await res.json();
-        return analyzeThreatLevels(data.features);
+        return analyzeLocalThreats(data.features);
     } catch (e) { return null; }
 }
 
 async function fetchAtmosphere(lat, lon) {
     try {
-        // LOGIC FIX: Hardcoded temperature_unit=fahrenheit to prevent Celsius default
         const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,dew_point_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m,surface_pressure,cape&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto`;
         const res = await fetch(url);
         const data = await res.json();
@@ -168,26 +169,31 @@ function getCardinalDirection(angle) {
 }
 
 // --- DECISION ENGINE LOGIC ---
-function analyzeThreatLevels(features) {
+function analyzeLocalThreats(features) {
     let highestThreat = 1;
+    // The point query returns all local alerts (floods, heat, etc.). We must strictly filter for severe convective events.
+    const severeEvents = ["Tornado Warning", "Severe Thunderstorm Warning", "Tornado Watch", "Severe Thunderstorm Watch"];
+    
     features.forEach(alert => {
         const p = alert.properties;
-        const text = (p.description + " " + (p.instruction || "")).toUpperCase();
-        const isPDS = text.includes("PARTICULARLY DANGEROUS SITUATION");
-        const isObserved = text.includes("OBSERVED");
+        if (severeEvents.includes(p.event)) {
+            const text = (p.description + " " + (p.instruction || "")).toUpperCase();
+            const isPDS = text.includes("PARTICULARLY DANGEROUS SITUATION");
+            const isObserved = text.includes("OBSERVED");
 
-        let weight = 1;
-        if (p.event === "Tornado Watch") weight = 2;
-        if (p.event === "Severe Thunderstorm Warning") weight = isPDS ? 4 : 3;
-        if (p.event === "Tornado Warning") weight = (isPDS || isObserved) ? 5 : 4;
-        
-        if (weight > highestThreat) highestThreat = weight;
+            let weight = 1;
+            if (p.event === "Tornado Watch" || p.event === "Severe Thunderstorm Watch") weight = 2;
+            if (p.event === "Severe Thunderstorm Warning") weight = isPDS ? 4 : 3;
+            if (p.event === "Tornado Warning") weight = (isPDS || isObserved) ? 5 : 4;
+            
+            if (weight > highestThreat) highestThreat = weight;
+        }
     });
     return highestThreat;
 }
 
 function calculateDecisionEngine(nwsLevel, atm) {
-    let out = { finalThreatLevel: nwsLevel, actionDirective: "CONDITIONS CLEAR", tooltipText: "No active warnings." };
+    let out = { finalThreatLevel: nwsLevel, actionDirective: "CONDITIONS CLEAR", tooltipText: "No active severe warnings for this exact location." };
     const isHighFuel = atm.dewPoint >= 65 && atm.cape >= 1000;
 
     if (nwsLevel === 5) {
@@ -195,9 +201,9 @@ function calculateDecisionEngine(nwsLevel, atm) {
     } else if (nwsLevel === 4) {
         out.actionDirective = "TAKE COVER"; out.tooltipText = "Radar indicates rotational winds or destructive severe storm.";
     } else if (nwsLevel === 3) {
-        out.actionDirective = "STAY INDOORS"; out.tooltipText = "Severe thunderstorm warning active.";
+        out.actionDirective = "STAY INDOORS"; out.tooltipText = "Severe thunderstorm warning active for your area.";
     } else if (nwsLevel <= 2 && isHighFuel) {
-        out.finalThreatLevel = 2; out.actionDirective = "STORM FUEL HIGH"; out.tooltipText = `High atmospheric fuel detected. Monitor closely.`;
+        out.finalThreatLevel = 2; out.actionDirective = "STORM FUEL HIGH"; out.tooltipText = `High atmospheric fuel detected locally. Monitor closely.`;
     } else if (nwsLevel === 2) {
         out.actionDirective = "WATCH ISSUED"; out.tooltipText = "Conditions favorable for severe weather. Stay alert.";
     }
@@ -212,13 +218,11 @@ function renderUI(decision, atm) {
     document.getElementById('engine-tooltip').innerText = decision.tooltipText;
 
     if (atm) {
-        // Basic Stats (Gusts Included)
         document.getElementById('current-temp').innerText = Math.round(atm.temp);
         document.getElementById('current-wind').innerText = Math.round(atm.windSpeed);
         document.getElementById('wind-dir').innerText = atm.windDir;
         document.getElementById('pro-gusts').innerText = Math.round(atm.windGusts);
         
-        // Advanced Stats (Humidity Included)
         document.getElementById('current-humidity').innerText = Math.round(atm.humidity);
         document.getElementById('pro-pressure').innerText = atm.pressureInHg;
         document.getElementById('pro-dewpoint').innerText = Math.round(atm.dewPoint);
@@ -229,7 +233,7 @@ function renderUI(decision, atm) {
 function processNationalScanner(features) {
     const feed = document.getElementById('scanner-feed');
     if (!features || features.length === 0) {
-        feed.innerHTML = `<p class="empty-state">No active severe warnings or watches.</p>`;
+        feed.innerHTML = `<p class="empty-state">No active severe warnings or watches nationwide.</p>`;
         return;
     }
 
@@ -256,12 +260,12 @@ function processNationalScanner(features) {
 
         return `
         <div class="${cardClass}">
-            <div style="display: flex; justify-content: space-between; align-items: start;">
+            <div style="display: flex; justify-content: space-between; align-items: start; text-align: left;">
                 <div>
                     <span class="status-tag">${tag}</span>
                     <h4>${w.area}</h4>
                 </div>
-                <button class="glass-btn-sm" onclick="openStatementModal(${index})" style="padding: 4px 8px; font-size: 0.7rem;">Read</button>
+                <button class="glass-btn-sm" onclick="openStatementModal(${index})" style="padding: 4px 8px; font-size: 0.7rem; flex-shrink: 0; margin-left: 10px;">Read</button>
             </div>
         </div>
         `;
