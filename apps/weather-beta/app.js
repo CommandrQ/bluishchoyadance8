@@ -1,8 +1,14 @@
 // --- CONFIGURATION ---
-// The national URL grabs all active severe warnings nationwide.
-const NWS_NATIONAL_URL = 'https://api.weather.gov/alerts/active?event=Tornado%20Warning,Severe%20Thunderstorm%20Warning,Tornado%20Watch';
-
+const NWS_NATIONAL_BASE_URL = 'https://api.weather.gov/alerts/active?event=Tornado%20Warning,Severe%20Thunderstorm%20Warning,Tornado%20Watch';
 window.scannerStatements = [];
+
+// Autofocus search bar immediately after load
+window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        const searchInput = document.getElementById('location-search');
+        if (searchInput) searchInput.focus();
+    }, 150);
+});
 
 // --- SERVICE WORKER REGISTRATION ---
 if ('serviceWorker' in navigator) {
@@ -19,9 +25,11 @@ function updateNetworkStatus() {
     
     if (navigator.onLine) {
         banner.classList.add('hidden');
-        scanState.innerText = "ACTIVE";
-        scanState.className = "state-active";
-        refreshDashboard();
+        if(localStorage.getItem('last_lat')) {
+            scanState.innerText = "ACTIVE";
+            scanState.className = "state-active";
+            refreshDashboard();
+        }
     } else {
         banner.classList.remove('hidden');
         scanState.innerText = "OFFLINE";
@@ -42,10 +50,15 @@ document.getElementById('toggle-advanced-btn').addEventListener('click', (e) => 
 });
 
 document.getElementById('manual-refresh-btn').addEventListener('click', () => {
+    // Visual Action Feedback
     const btn = document.getElementById('manual-refresh-btn');
     btn.style.transform = 'rotate(180deg)';
-    btn.style.transition = 'transform 0.3s ease';
-    setTimeout(() => btn.style.transform = 'rotate(0deg)', 300);
+    btn.style.transition = 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+    setTimeout(() => {
+        btn.style.transition = 'none';
+        btn.style.transform = 'rotate(0deg)';
+    }, 400);
+    
     refreshDashboard();
 });
 
@@ -96,6 +109,8 @@ function selectLocation(lat, lon, name) {
     
     searchInput.value = name;
     dropdown.classList.add('hidden');
+    document.getElementById('toggle-advanced-btn').classList.remove('hidden');
+    
     refreshDashboard();
 }
 
@@ -103,23 +118,36 @@ function selectLocation(lat, lon, name) {
 async function refreshDashboard() {
     if (!navigator.onLine) return; 
 
-    const lat = localStorage.getItem('last_lat') || "37.9887"; 
-    const lon = localStorage.getItem('last_lon') || "-85.9589";
-    const locName = localStorage.getItem('last_location_name') || "Default Location";
+    const lat = localStorage.getItem('last_lat'); 
+    const lon = localStorage.getItem('last_lon');
+    const locName = localStorage.getItem('last_location_name');
+
+    if (!lat || !lon) return; // Halt if no city searched
+
     searchInput.value = locName;
 
+    // Set UI to "Scanning" so user physically sees the engine processing
+    const scanState = document.getElementById('scan-state');
+    scanState.innerText = "SCANNING...";
+    scanState.className = "state-idle";
+
+    // Concurrently fetch all data streams
     const [localAlerts, localAtmosphere, nationalAlerts] = await Promise.all([
         fetchLocalWarnings(lat, lon),
         fetchAtmosphere(lat, lon),
         fetchNationalScanner()
     ]);
 
-    const decision = calculateDecisionEngine(localAlerts || 1, localAtmosphere || { dewPoint: 0, cape: 0, windGusts: 0 });
+    const decision = calculateDecisionEngine(localAlerts || 1, localAtmosphere || { dewPoint: 0, cape: 0, windGusts: 0, weatherCode: 0 });
     
     renderUI(decision, localAtmosphere);
     processNationalScanner(nationalAlerts || []);
     
-    document.getElementById('last-scan-time').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    // Complete the feedback loop
+    scanState.innerText = "ACTIVE";
+    scanState.className = "state-active";
+    document.getElementById('last-scan-time').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+    document.getElementById('toggle-advanced-btn').classList.remove('hidden');
     
     startHeartbeat(decision.finalThreatLevel);
 }
@@ -127,8 +155,8 @@ async function refreshDashboard() {
 // --- FETCH FUNCTIONS ---
 async function fetchLocalWarnings(lat, lon) {
     try {
-        // LOGIC FIX: Dynamically query exact coordinates to isolate the local threat level
-        const localUrl = `https://api.weather.gov/alerts/active?point=${lat},${lon}`;
+        // OPTIMIZATION: Cache-Buster appended to force raw, real-time NWS data
+        const localUrl = `https://api.weather.gov/alerts/active?point=${lat},${lon}&_cb=${Date.now()}`;
         const res = await fetch(localUrl, { headers: { 'Accept': 'application/geo+json' }});
         if (!res.ok) throw new Error("Local NWS Error");
         const data = await res.json();
@@ -138,7 +166,7 @@ async function fetchLocalWarnings(lat, lon) {
 
 async function fetchAtmosphere(lat, lon) {
     try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,dew_point_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m,surface_pressure,cape&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto`;
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,dew_point_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m,surface_pressure,cape,weather_code&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto`;
         const res = await fetch(url);
         const data = await res.json();
         const cur = data.current;
@@ -150,6 +178,7 @@ async function fetchAtmosphere(lat, lon) {
             windDir: getCardinalDirection(cur.wind_direction_10m),
             windGusts: cur.wind_gusts_10m || 0,
             cape: cur.cape || 0, 
+            weatherCode: cur.weather_code || 0,
             pressureInHg: (cur.surface_pressure * 0.02953).toFixed(2)
         };
     } catch (e) { return null; }
@@ -157,7 +186,9 @@ async function fetchAtmosphere(lat, lon) {
 
 async function fetchNationalScanner() {
     try {
-        const res = await fetch(NWS_NATIONAL_URL, { headers: { 'Accept': 'application/geo+json' }});
+        // OPTIMIZATION: Cache-Buster appended here as well
+        const nationalUrl = `${NWS_NATIONAL_BASE_URL}&_cb=${Date.now()}`;
+        const res = await fetch(nationalUrl, { headers: { 'Accept': 'application/geo+json' }});
         const data = await res.json();
         return data.features;
     } catch (e) { return null; }
@@ -171,7 +202,6 @@ function getCardinalDirection(angle) {
 // --- DECISION ENGINE LOGIC ---
 function analyzeLocalThreats(features) {
     let highestThreat = 1;
-    // The point query returns all local alerts (floods, heat, etc.). We must strictly filter for severe convective events.
     const severeEvents = ["Tornado Warning", "Severe Thunderstorm Warning", "Tornado Watch", "Severe Thunderstorm Watch"];
     
     features.forEach(alert => {
@@ -193,8 +223,11 @@ function analyzeLocalThreats(features) {
 }
 
 function calculateDecisionEngine(nwsLevel, atm) {
-    let out = { finalThreatLevel: nwsLevel, actionDirective: "CONDITIONS CLEAR", tooltipText: "No active severe warnings for this exact location." };
+    let out = { finalThreatLevel: nwsLevel, actionDirective: "CONDITIONS CLEAR", tooltipText: "No active severe warnings for this location." };
     const isHighFuel = atm.dewPoint >= 65 && atm.cape >= 1000;
+    
+    // Check raw WMO codes for thunderstorms (95, 96, 99)
+    const isLocalStorm = atm.weatherCode === 95 || atm.weatherCode === 96 || atm.weatherCode === 99;
 
     if (nwsLevel === 5) {
         out.actionDirective = "IMMINENT DANGER"; out.tooltipText = "PDS or Observed Tornado on the ground. Seek shelter immediately.";
@@ -202,10 +235,18 @@ function calculateDecisionEngine(nwsLevel, atm) {
         out.actionDirective = "TAKE COVER"; out.tooltipText = "Radar indicates rotational winds or destructive severe storm.";
     } else if (nwsLevel === 3) {
         out.actionDirective = "STAY INDOORS"; out.tooltipText = "Severe thunderstorm warning active for your area.";
-    } else if (nwsLevel <= 2 && isHighFuel) {
-        out.finalThreatLevel = 2; out.actionDirective = "STORM FUEL HIGH"; out.tooltipText = `High atmospheric fuel detected locally. Monitor closely.`;
     } else if (nwsLevel === 2) {
         out.actionDirective = "WATCH ISSUED"; out.tooltipText = "Conditions favorable for severe weather. Stay alert.";
+    } else if (nwsLevel === 1) {
+        if (isLocalStorm) {
+            out.finalThreatLevel = 2;
+            out.actionDirective = "LOCAL STORM DETECTED"; 
+            out.tooltipText = "NWS is clear, but meteorological data detects an active thunderstorm.";
+        } else if (isHighFuel) {
+            out.finalThreatLevel = 2; 
+            out.actionDirective = "STORM FUEL HIGH"; 
+            out.tooltipText = `High atmospheric fuel detected locally. Monitor closely.`;
+        }
     }
     return out;
 }
@@ -217,7 +258,7 @@ function renderUI(decision, atm) {
     document.getElementById('action-directive').innerText = decision.actionDirective;
     document.getElementById('engine-tooltip').innerText = decision.tooltipText;
 
-    if (atm) {
+    if (atm && atm.temp !== undefined) {
         document.getElementById('current-temp').innerText = Math.round(atm.temp);
         document.getElementById('current-wind').innerText = Math.round(atm.windSpeed);
         document.getElementById('wind-dir').innerText = atm.windDir;
@@ -300,3 +341,4 @@ function startHeartbeat(level) {
 
 // Kickoff
 updateNetworkStatus();
+refreshDashboard();
