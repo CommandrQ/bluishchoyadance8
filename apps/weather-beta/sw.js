@@ -29,7 +29,6 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Only cache GET requests and ignore API calls so we don't serve stale weather logic
   if (event.request.method !== 'GET' || event.request.url.includes('api.weather.gov') || event.request.url.includes('api.open-meteo.com')) {
     return;
   }
