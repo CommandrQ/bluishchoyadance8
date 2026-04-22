@@ -3,41 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Level 1 Weather Tool (Beta)</title>
-    
+    <title>Weather Tool - Glassmorphism</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="bg-shape shape1"></div>
+    <div class="bg-shape shape2"></div>
 
-    <h2>Live Threat Feed (Standalone Beta)</h2>
-
-    <div class="box" id="auto-data">
-        <h3>Local Baseline Data</h3>
-        <p>Scanning atmosphere...</p>
-    </div>
-
-    <div class="box">
-        <h3>Submit Ground Report</h3>
-        
-        <div class="autocomplete-container">
-            <input type="text" id="location-input" placeholder="Search US City (e.g., Dallas, TX)">
-            <div id="autocomplete-list" class="autocomplete-results"></div>
+    <div id="alert-modal" class="modal-overlay hidden">
+        <div class="modal-glass">
+            <h3 class="modal-title">⚠️ Severe Weather Alert</h3>
+            <p id="modal-text">Loading alert details...</p>
+            <button class="apple-btn close-btn" onclick="closeModal()">Dismiss</button>
         </div>
-        
-        <select id="threat">
-            <option value="GREEN">GREEN - All Clear</option>
-            <option value="YELLOW">YELLOW - Be Aware</option>
-            <option value="RED">RED - Imminent Danger</option>
-        </select>
-        
-        <input type="text" id="chatter" placeholder="What are you seeing? (e.g., Wall cloud forming...)">
-        
-        <button onclick="postMockUpdate()">Broadcast Report</button>
     </div>
 
-    <div class="box">
-        <h3>Local Spotter Feed</h3>
-        <div id="feed-data">Loading feed...</div>
+    <div class="container">
+        <main class="glass-panel main-dashboard">
+            <h1 id="city-name">Loading Location...</h1>
+            <div id="threat-indicator" class="threat-pill">Scanning Threat Level...</div>
+
+            <div class="weather-grid">
+                <div class="data-box">
+                    <span class="label">Temperature</span>
+                    <span class="value" id="val-temp">--°F</span>
+                </div>
+                <div class="data-box">
+                    <span class="label">Humidity</span>
+                    <span class="value" id="val-humidity">--%</span>
+                </div>
+                <div class="data-box">
+                    <span class="label">Wind</span>
+                    <span class="value" id="val-wind">-- mph <span id="val-wind-dir"></span></span>
+                </div>
+                <div class="data-box">
+                    <span class="label">Gusts</span>
+                    <span class="value" id="val-gusts">-- mph</span>
+                </div>
+            </div>
+
+            <button class="apple-btn outline-btn" onclick="toggleAdvanced()">View Advanced Data</button>
+            
+            <div id="advanced-data" class="advanced-section hidden">
+                <p id="local-alert-text" class="alert-text-muted">No active local NWS warnings.</p>
+                <div style="font-size: 0.85em; color: rgba(255,255,255,0.7); margin-top: 10px;">
+                    Refresh Rate: <span id="val-refresh">Calculating...</span><br>
+                    Last Updated: <span id="val-time">--:--</span>
+                </div>
+            </div>
+        </main>
+
+        <section class="glass-panel alerts-section">
+            <h2>State Alerts Finder</h2>
+            <div class="state-search">
+                <select id="state-select" class="apple-input">
+                    <option value="">Select a State...</option>
+                    <option value="TX">Texas</option>
+                    <option value="OK">Oklahoma</option>
+                    <option value="KS">Kansas</option>
+                    <option value="MO">Missouri</option>
+                    <option value="IA">Iowa</option>
+                    <option value="NE">Nebraska</option>
+                    <option value="SD">South Dakota</option>
+                    <option value="MN">Minnesota</option>
+                    <option value="IL">Illinois</option>
+                    <option value="KY">Kentucky</option>
+                    </select>
+                <button class="apple-btn" onclick="fetchStateAlerts()">Search</button>
+            </div>
+            <div id="state-alerts-results" class="results-box">
+                Select a state to view active NWS warnings.
+            </div>
+        </section>
     </div>
 
     <script src="app.js"></script>
