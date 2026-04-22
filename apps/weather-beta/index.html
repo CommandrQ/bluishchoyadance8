@@ -15,13 +15,29 @@
         <div class="blob b2"></div>
     </div>
 
-    <div id="offline-banner" class="hidden-banner">⚠️ OFFLINE MODE: Showing Last Known Data</div>
+    <div id="offline-banner" class="hidden">⚠️ OFFLINE MODE: Showing Last Known Data</div>
+
+    <svg style="display: none;">
+        <symbol id="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </symbol>
+        <symbol id="icon-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+        </symbol>
+    </svg>
 
     <main class="centered-window">
         <nav class="top-nav">
             <a href="/menu.html" class="glass-btn back-btn">Menu</a>
             <div class="search-container">
-                <input type="text" id="location-search" placeholder="Search city..." autocomplete="off">
+                <div class="search-input-wrapper">
+                    <svg class="ui-icon-sm search-icon"><use xlink:href="#icon-search"></use></svg>
+                    <input type="text" id="location-search" placeholder="Search city..." autocomplete="off">
+                    <button id="manual-refresh-btn" class="icon-btn" title="Refresh Data">
+                        <svg class="ui-icon-sm"><use xlink:href="#icon-refresh"></use></svg>
+                    </button>
+                </div>
                 <ul id="autocomplete-dropdown" class="dropdown hidden"></ul>
             </div>
         </nav>
@@ -34,12 +50,12 @@
         
         <section class="metrics-grid basic-metrics">
             <div class="metric-card">
-                <small>Temperature</small>
+                <small>Temp</small>
                 <p><span id="current-temp">--</span>°F</p>
             </div>
             <div class="metric-card">
                 <small>Wind</small>
-                <p><span id="current-wind">--</span> mph <span id="wind-dir" class="unit">--</span></p>
+                <p><span id="current-wind">--</span> <span class="unit">mph</span> <span id="wind-dir" class="unit">--</span></p>
             </div>
             <div class="metric-card">
                 <small>Humidity</small>
@@ -54,11 +70,11 @@
         <section id="advanced-metrics" class="metrics-grid advanced-metrics hidden">
             <div class="metric-card">
                 <small>Wind Gusts</small>
-                <p><span id="pro-gusts">--</span> mph</p>
+                <p><span id="pro-gusts">--</span> <span class="unit">mph</span></p>
             </div>
             <div class="metric-card">
                 <small>Pressure</small>
-                <p><span id="pro-pressure">--</span> inHg</p>
+                <p><span id="pro-pressure">--</span> <span class="unit">inHg</span></p>
             </div>
             <div class="metric-card">
                 <small>Dew Point</small>
@@ -75,7 +91,19 @@
                 <p class="empty-state">Scanning NWS network...</p>
             </div>
         </section>
+
+        <div class="scan-status-footer">
+            Data Scan: <span id="scan-state" class="state-active">ACTIVE</span> | Last Scan: <span id="last-scan-time">--:--</span>
+        </div>
     </main>
+
+    <div id="statement-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 id="modal-title">NWS Statement</h3>
+            <div id="modal-body" class="modal-text scroll-area"></div>
+            <button class="glass-btn w-100 mt-15" onclick="closeStatementModal()">Close Statement</button>
+        </div>
+    </div>
 
     <script src="app.js"></script>
 </body>
