@@ -32,7 +32,7 @@
       "name": "Weather Beta",
       "iconValue": "🌤️",
       "iconType": "emoji",
-      "link": "apps/bbdh",
+      "link": "apps/weather-beta/index.html",
       "external": false
     }
   ]
