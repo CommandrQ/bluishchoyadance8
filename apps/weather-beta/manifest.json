@@ -1,7 +1,7 @@
 {
   "name": "Live Tornado Tracker Beta",
   "short_name": "StormScanner",
-  "description": "Real-time decision engine for severe weather monitoring.",
+  "description": "Real-time expandable decision engine.",
   "start_url": "/apps/weather-beta/index.html",
   "display": "standalone",
   "background_color": "#000000",
