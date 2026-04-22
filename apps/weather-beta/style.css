@@ -1,142 +1,187 @@
 /* ==========================================
-   1. BASE LAYOUT & TYPOGRAPHY
+   APPLE DESIGN & GLASSMORPHISM VARIABLES
    ========================================== */
-body { 
-    font-family: monospace; 
-    padding: 20px; 
-    background: #111; 
-    color: #0f0; 
-    max-width: 600px; 
-    margin: auto; 
+:root {
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --text-main: #ffffff;
+    --text-muted: rgba(255, 255, 255, 0.7);
+    --threat-green: rgba(52, 199, 89, 0.8);
+    --threat-yellow: rgba(255, 204, 0, 0.8);
+    --threat-red: rgba(255, 59, 48, 0.9);
 }
 
-h2, h3 { 
-    border-bottom: 1px solid #0f0; 
-    padding-bottom: 5px; 
-}
-
-.box { 
-    border: 1px solid #0f0; 
-    padding: 15px; 
-    margin-bottom: 20px; 
-    background: #1a1a1a; 
-}
-
-/* ==========================================
-   2. INPUTS & BUTTONS
-   ========================================== */
-input, select, button { 
-    padding: 10px; 
-    margin: 5px 0; 
-    background: #222; 
-    color: #0f0; 
-    border: 1px solid #0f0; 
-    width: 100%; 
-    box-sizing: border-box; 
-    font-family: monospace;
-}
-
-button { 
-    cursor: pointer; 
-    font-weight: bold; 
-}
-
-button:hover { 
-    background: #0f0; 
-    color: #111; 
-}
-
-/* ==========================================
-   3. THREAT LEVEL COLORS
-   ========================================== */
-.threat-green { 
-    color: #0f0; 
-    font-weight: bold; 
-}
-
-.threat-yellow { 
-    color: #ff0; 
-    font-weight: bold; 
-}
-
-.threat-red { 
-    color: #f00; 
-    font-weight: bold; 
-}
-
-/* ==========================================
-   4. EDUCATIONAL TOOLTIPS
-   ========================================== */
-.tooltip { 
-    border-bottom: 1px dotted #0f0; 
-    cursor: help; 
-    position: relative; 
-    display: inline-block; 
-}
-
-.tooltip .tooltiptext { 
-    visibility: hidden; 
-    width: 220px; 
-    background-color: #222; 
-    color: #fff; 
-    text-align: center; 
-    padding: 8px; 
-    border: 1px solid #0f0; 
-    position: absolute; 
-    z-index: 10; /* Keep high so it overlaps other elements */
-    bottom: 125%; 
-    left: 50%; 
-    margin-left: -110px; 
-    font-size: 0.9em; 
-    box-shadow: 0px 4px 6px rgba(0,0,0,0.5);
-}
-
-.tooltip:hover .tooltiptext { 
-    visibility: visible; 
-}
-
-/* ==========================================
-   5. AUTOCOMPLETE DROPDOWN
-   ========================================== */
-.autocomplete-container {
+body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text-main);
+    background-color: #0f172a;
+    min-height: 100vh;
+    overflow-x: hidden;
     position: relative;
+}
+
+/* Animated Background Blobs for Glass Effect */
+.bg-shape {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    z-index: -1;
+    animation: float 20s infinite ease-in-out alternate;
+}
+.shape1 { width: 400px; height: 400px; background: #3b82f6; top: -100px; left: -100px; }
+.shape2 { width: 500px; height: 500px; background: #8b5cf6; bottom: -100px; right: -100px; animation-delay: -10s; }
+
+@keyframes float {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(50px, 50px) scale(1.1); }
+}
+
+.container {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ==========================================
+   GLASS PANELS
+   ========================================== */
+.glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 30px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease;
+}
+
+h1, h2 { margin-top: 0; font-weight: 600; letter-spacing: -0.5px; }
+h1 { font-size: 2.5em; margin-bottom: 10px; }
+
+/* ==========================================
+   THREAT PILL & DATA GRID
+   ========================================== */
+.threat-pill {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9em;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition: background 0.5s ease;
+}
+
+.weather-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.data-box {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 16px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.data-box .label { font-size: 0.8em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+.data-box .value { font-size: 1.5em; font-weight: 700; }
+
+/* ==========================================
+   BUTTONS & INPUTS
+   ========================================== */
+.apple-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--glass-border);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 1em;
+    font-weight: 500;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: all 0.2s ease;
     width: 100%;
 }
 
-.autocomplete-results {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: #222;
-    border: 1px solid #0f0;
-    border-top: none;
-    z-index: 1000; /* Ensure this floats above the rest of the form */
-    max-height: 150px;
+.apple-btn:hover { background: rgba(255, 255, 255, 0.3); transform: scale(0.98); }
+.outline-btn { background: transparent; }
+
+.apple-input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--glass-border);
+    color: white;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 1em;
+    margin-bottom: 10px;
+    backdrop-filter: blur(10px);
+}
+.apple-input option { background: #1e1b4b; color: white; }
+
+/* ==========================================
+   ADVANCED SECTION & STATE ALERTS
+   ========================================== */
+.hidden { display: none !important; }
+
+.advanced-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--glass-border);
+    animation: fadeIn 0.4s ease;
+}
+
+.alert-text-muted { color: var(--text-muted); font-size: 0.9em; }
+
+.results-box {
+    margin-top: 15px;
+    max-height: 200px;
     overflow-y: auto;
-}
-
-.autocomplete-item {
-    padding: 10px;
-    cursor: pointer;
-    border-bottom: 1px solid #333;
     font-size: 0.9em;
+    color: var(--text-muted);
+}
+.results-box p { margin: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
+
+/* ==========================================
+   MODAL POPUP (RED ALERT)
+   ========================================== */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.autocomplete-item:hover {
-    background: #0f0;
-    color: #111;
+.modal-glass {
+    background: rgba(255, 59, 48, 0.2);
+    backdrop-filter: blur(25px) saturate(200%);
+    border: 1px solid rgba(255, 59, 48, 0.5);
+    border-radius: 24px;
+    padding: 30px;
+    width: 85%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* Custom scrollbar for the autocomplete dropdown to match the retro theme */
-.autocomplete-results::-webkit-scrollbar { 
-    width: 8px; 
-}
+.modal-title { color: #ff453a; font-size: 1.5em; margin-bottom: 15px; }
+.close-btn { background: #ff453a; border: none; font-weight: 700; margin-top: 20px; }
+.close-btn:hover { background: #ff6961; }
 
-.autocomplete-results::-webkit-scrollbar-thumb { 
-    background: #0f0; 
-}
-
-.autocomplete-results::-webkit-scrollbar-track {
-    background: #111;
-}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
