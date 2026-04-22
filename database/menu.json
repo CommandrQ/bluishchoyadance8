@@ -27,6 +27,13 @@
       "iconType": "image",
       "link": "apps/tunes.html",
       "external": false
+    },
+    {
+      "name": "Weather Beta",
+      "iconValue": "🌤️",
+      "iconType": "emoji",
+      "link": "apps/bbdh",
+      "external": false
     }
   ]
 }
