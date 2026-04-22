@@ -2,12 +2,35 @@
 const NWS_LOCAL_URL = 'https://api.weather.gov/alerts/active?event=Tornado%20Warning,Severe%20Thunderstorm%20Warning,Tornado%20Watch';
 const NWS_NATIONAL_URL = 'https://api.weather.gov/alerts/active?event=Tornado%20Warning,Severe%20Thunderstorm%20Warning,Tornado%20Watch';
 
+// Store statements in memory to avoid redundant API calls
+window.scannerStatements = [];
+
 // --- SERVICE WORKER ---
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => navigator.serviceWorker.register('/apps/weather-beta/sw.js').catch(err => console.error(err)));
 }
 
-// --- UI TOGGLE LOGIC ---
+// --- ONLINE/OFFLINE RADAR LOGIC ---
+window.addEventListener('online', updateNetworkStatus);
+window.addEventListener('offline', updateNetworkStatus);
+
+function updateNetworkStatus() {
+    const banner = document.getElementById('offline-banner');
+    const scanState = document.getElementById('scan-state');
+    
+    if (navigator.onLine) {
+        banner.classList.add('hidden');
+        scanState.innerText = "ACTIVE";
+        scanState.className = "state-active";
+        refreshDashboard();
+    } else {
+        banner.classList.remove('hidden');
+        scanState.innerText = "OFFLINE";
+        scanState.className = "state-offline";
+    }
+}
+
+// --- UI EVENT LISTENERS ---
 document.getElementById('toggle-advanced-btn').addEventListener('click', (e) => {
     const advSection = document.getElementById('advanced-metrics');
     if (advSection.classList.contains('hidden')) {
@@ -19,7 +42,16 @@ document.getElementById('toggle-advanced-btn').addEventListener('click', (e) => 
     }
 });
 
-// --- AUTOCOMPLETE SEARCH LOGIC ---
+document.getElementById('manual-refresh-btn').addEventListener('click', () => {
+    // Spin icon briefly to show physical action
+    const btn = document.getElementById('manual-refresh-btn');
+    btn.style.transform = 'rotate(180deg)';
+    btn.style.transition = 'transform 0.3s ease';
+    setTimeout(() => btn.style.transform = 'rotate(0deg)', 300);
+    refreshDashboard();
+});
+
+// --- AUTOCOMPLETE LOGIC ---
 const searchInput = document.getElementById('location-search');
 const dropdown = document.getElementById('autocomplete-dropdown');
 let debounceTimer;
@@ -39,7 +71,6 @@ searchInput.addEventListener('input', (e) => {
             const data = await res.json();
             
             if (data.results) {
-                // Filter for US locations and build the list
                 const usCities = data.results.filter(item => item.country_code === 'US');
                 dropdown.innerHTML = usCities.map(city => 
                     `<li onclick="selectLocation(${city.latitude}, ${city.longitude}, '${city.name}, ${city.admin1}')">
@@ -51,10 +82,9 @@ searchInput.addEventListener('input', (e) => {
                 dropdown.classList.add('hidden');
             }
         } catch (err) { console.error("Geocoding failed", err); }
-    }, 300); // 300ms delay to prevent API spam
+    }, 300);
 });
 
-// Close dropdown if clicking outside
 document.addEventListener('click', (e) => {
     if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
         dropdown.classList.add('hidden');
@@ -73,6 +103,8 @@ function selectLocation(lat, lon, name) {
 
 // --- MASTER REFRESH ENGINE ---
 async function refreshDashboard() {
+    if (!navigator.onLine) return; // Don't attempt fetch if physically offline
+
     const lat = localStorage.getItem('last_lat') || "37.9887"; 
     const lon = localStorage.getItem('last_lon') || "-85.9589";
     const locName = localStorage.getItem('last_location_name') || "Default Location";
@@ -88,6 +120,9 @@ async function refreshDashboard() {
     
     renderUI(decision, localAtmosphere);
     processNationalScanner(nationalAlerts || []);
+    
+    // Update the "Radar" Scan Footer
+    document.getElementById('last-scan-time').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     
     startHeartbeat(decision.finalThreatLevel);
 }
@@ -129,7 +164,6 @@ async function fetchNationalScanner() {
     } catch (e) { return null; }
 }
 
-// Helper: Convert degrees to compass direction
 function getCardinalDirection(angle) {
     const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
     return directions[Math.round(angle / 45) % 8];
@@ -140,7 +174,7 @@ function analyzeThreatLevels(features) {
     let highestThreat = 1;
     features.forEach(alert => {
         const p = alert.properties;
-        const text = (p.description + " " + p.instruction).toUpperCase();
+        const text = (p.description + " " + (p.instruction || "")).toUpperCase();
         const isPDS = text.includes("PARTICULARLY DANGEROUS SITUATION");
         const isObserved = text.includes("OBSERVED");
 
@@ -180,20 +214,18 @@ function renderUI(decision, atm) {
     document.getElementById('engine-tooltip').innerText = decision.tooltipText;
 
     if (atm) {
-        // Basic Stats
         document.getElementById('current-temp').innerText = Math.round(atm.temp);
         document.getElementById('current-wind').innerText = Math.round(atm.windSpeed);
         document.getElementById('wind-dir').innerText = atm.windDir;
         document.getElementById('current-humidity').innerText = Math.round(atm.humidity);
         
-        // Advanced Stats
         document.getElementById('pro-gusts').innerText = Math.round(atm.windGusts);
         document.getElementById('pro-pressure').innerText = atm.pressureInHg;
         document.getElementById('pro-dewpoint').innerText = Math.round(atm.dewPoint);
     }
 }
 
-// --- NATIONAL SCANNER LOGIC ---
+// --- NATIONAL SCANNER & STATEMENT MODAL LOGIC ---
 function processNationalScanner(features) {
     const feed = document.getElementById('scanner-feed');
     if (!features || features.length === 0) {
@@ -201,19 +233,21 @@ function processNationalScanner(features) {
         return;
     }
 
-    let sorted = features.map(f => {
+    // Logic: Map the API data into a clean structure and save to global array for the Modal
+    window.scannerStatements = features.map(f => {
         const p = f.properties;
-        const text = (p.description + " " + p.instruction || "").toUpperCase();
+        const text = (p.description + "\n\n" + (p.instruction || "")).toUpperCase();
         return {
             event: p.event,
             area: p.areaDesc,
             isPDS: text.includes("PARTICULARLY DANGEROUS"),
             isObserved: text.includes("OBSERVED") || text.includes("CONFIRMED"),
+            rawText: p.description + "\n\n" + (p.instruction || "No specific instructions provided."),
             weight: getSortWeight(p.event, text)
         };
     }).sort((a, b) => b.weight - a.weight);
 
-    feed.innerHTML = sorted.map(w => {
+    feed.innerHTML = window.scannerStatements.map((w, index) => {
         let tag = w.event.toUpperCase();
         if (w.isPDS || w.isObserved) tag = '⚠️ PDS / OBSERVED TORNADO';
         
@@ -223,8 +257,13 @@ function processNationalScanner(features) {
 
         return `
         <div class="${cardClass}">
-            <span class="status-tag">${tag}</span>
-            <h4>${w.area}</h4>
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                    <span class="status-tag">${tag}</span>
+                    <h4>${w.area}</h4>
+                </div>
+                <button class="glass-btn-sm" onclick="openStatementModal(${index})" style="padding: 4px 8px; font-size: 0.7rem;">Read</button>
+            </div>
         </div>
         `;
     }).join('');
@@ -237,6 +276,19 @@ function getSortWeight(event, text) {
     return 1;
 }
 
+// Modal Functions
+function openStatementModal(index) {
+    const statement = window.scannerStatements[index];
+    document.getElementById('modal-title').innerText = statement.event;
+    // We use innerText to ensure raw NWS spacing is respected via CSS white-space: pre-wrap
+    document.getElementById('modal-body').innerText = statement.rawText;
+    document.getElementById('statement-modal').classList.remove('hidden');
+}
+
+function closeStatementModal() {
+    document.getElementById('statement-modal').classList.add('hidden');
+}
+
 // --- HEARTBEAT ---
 function startHeartbeat(level) {
     let int = 300000; 
@@ -246,4 +298,4 @@ function startHeartbeat(level) {
 }
 
 // Kickoff
-refreshDashboard();
+updateNetworkStatus();
