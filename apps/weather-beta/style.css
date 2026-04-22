@@ -11,13 +11,13 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
 
-/* LAYER 0: Foundation Setup */
+/* LAYER 0: Foundation */
 body {
     background-color: #000; color: #fff;
-    width: 100vw; height: 100vh; /* Locked strictly to viewport */
-    overflow: hidden; /* Prevents page-level scrolling entirely */
+    width: 100vw; height: 100dvh; 
+    overflow: hidden; 
     display: flex; align-items: center; justify-content: center;
-    padding: 2.5vh 2.5vw; /* Generates the outer buffer */
+    padding: 2.5vh 2.5vw; 
 }
 
 .blob-wrapper { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: -1; filter: blur(90px); transition: background 1s ease; }
@@ -35,10 +35,8 @@ body {
 
 /* LAYER 1: Centered Glass Window */
 .centered-window {
-    width: 100%; 
-    max-width: 1200px; /* Expands dynamically up to 1200px on Desktop */
-    height: 100%; 
-    max-height: 900px; /* Prevents stretching too far vertically */
+    width: 100%; max-width: 1200px; 
+    height: 100%; max-height: 900px; 
     background: var(--glass-bg);
     backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
     border: 1px solid var(--glass-border);
@@ -46,38 +44,26 @@ body {
     box-shadow: 0 20px 50px rgba(0,0,0,0.5);
     display: flex; flex-direction: column;
     position: relative; z-index: 10;
-    overflow: hidden; /* Critical: Keeps Layer 4 bar constrained inside borders */
 }
 
 /* LAYER 4: Animated Threat Awareness Bar */
 .threat-awareness-bar {
     width: 100%; height: 6px; flex-shrink: 0;
     transition: background-color 0.5s ease;
+    border-radius: 24px 24px 0 0; 
 }
 .threat-level-1 .threat-awareness-bar { background-color: var(--lvl-1); }
 .threat-level-2 .threat-awareness-bar { background-color: var(--lvl-2); }
 .threat-level-3 .threat-awareness-bar { background-color: var(--lvl-3); }
 .threat-level-4 .threat-awareness-bar { background-color: var(--lvl-4); animation: alert-flash 1s infinite alternate; }
 .threat-level-5 .threat-awareness-bar { background-color: var(--lvl-5); animation: alert-flash 0.5s infinite alternate; }
-
 @keyframes alert-flash { from { opacity: 0.4; } to { opacity: 1; box-shadow: 0 0 15px currentColor; } }
 
-/* Internal Content Wrapper - Centering Logic */
-.window-content {
-    flex-grow: 1; display: flex; flex-direction: column;
-    padding: 25px 30px; gap: 20px;
-    align-items: center; /* Forces all children to center horizontally */
-    overflow: hidden; /* Passes scroll responsibility to the scanner */
-    width: 100%;
+/* LAYER 4: Search & Nav */
+.top-nav { 
+    display: flex; justify-content: center; gap: 15px; 
+    z-index: 9999; padding: 25px 30px 0 30px; 
 }
-
-/* Structure boundaries to prevent mobile stretching */
-.top-nav, .status-header, .metrics-grid, .toggle-container, .scanner-section, .glass-divider {
-    width: 100%; max-width: 800px; text-align: center;
-}
-
-/* Search & Nav */
-.top-nav { display: flex; justify-content: center; gap: 15px; z-index: 9999; }
 .back-btn { text-decoration: none; display: flex; align-items: center; justify-content: center; font-weight: 600; }
 .glass-btn, .glass-btn-sm { background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); color: white; padding: 10px 15px; border-radius: 12px; cursor: pointer; transition: background 0.2s; }
 .glass-btn-sm { padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; }
@@ -93,6 +79,19 @@ body {
 .dropdown.hidden { display: none !important; }
 .dropdown li { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); }
 
+/* Internal Content Wrapper - Scroll Logic */
+.window-content {
+    flex-grow: 1; display: flex; flex-direction: column;
+    padding: 10px 30px 25px 30px; gap: 20px;
+    align-items: center; 
+    width: 100%;
+    min-height: 0; 
+    overflow: hidden; 
+    border-radius: 0 0 24px 24px; 
+}
+
+.top-nav, .status-header, .metrics-grid, .toggle-container, .scanner-section, .glass-divider { width: 100%; max-width: 800px; text-align: center; }
+
 /* Headers & Typography */
 .status-header h1 { font-size: 2.2rem; margin: 10px 0; font-weight: 800; }
 .badge { background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: bold; }
@@ -105,13 +104,17 @@ body {
 .metric-card p { font-size: 1.5rem; font-weight: bold; margin-top: 5px; }
 .unit { font-size: 1rem; color: rgba(255,255,255,0.5); font-weight: 500; }
 .hidden { display: none !important; }
-.glass-divider { border: 0; height: 1px; background: var(--glass-border); margin: 5px 0; }
+.glass-divider { border: 0; height: 1px; background: var(--glass-border); margin: 5px 0; flex-shrink: 0; }
 
 /* Isolated Internal Scanner Scroll */
-.scanner-section { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
+.scanner-section { 
+    flex-grow: 1; 
+    display: flex; flex-direction: column; 
+    min-height: 0; 
+}
 .scanner-section h3 { font-size: 1.2rem; }
 .scanner-subtitle { font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-bottom: 10px; }
-.scroll-area { flex-grow: 1; overflow-y: auto; padding-right: 5px; } /* Only this element scrolls */
+.scroll-area { flex-grow: 1; overflow-y: auto; padding-right: 5px; }
 
 .scanner-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; margin-bottom: 10px; text-align: left; }
 .pds-card { border-color: var(--lvl-5); background: rgba(175, 82, 222, 0.15); }
@@ -138,7 +141,8 @@ body {
 
 /* Mobile Strict Polishing */
 @media (max-width: 600px) {
-    .window-content { padding: 15px 15px; gap: 15px; }
+    .top-nav { padding: 20px 15px 0 15px; }
+    .window-content { padding: 15px 15px 20px 15px; gap: 15px; }
     .status-header h1 { font-size: 1.6rem; }
     .metrics-grid { gap: 10px; }
     .metric-card { padding: 10px; min-width: 100px; }
