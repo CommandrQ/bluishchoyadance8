@@ -9,11 +9,12 @@ let currentThreatLevel = 1;
 let syncTimer = null;
 let allActiveAlerts = []; 
 
-// Initialize on Load
+// Initialize
 if (lat && lon) {
     document.getElementById('location-display').innerText = currentLocationText;
     fetchLiveWeather();
 }
+fetchNationalTornadoes(); // Runs independently on load
 
 // ==========================================
 // UTILITY FUNCTIONS
@@ -37,11 +38,31 @@ function toggleProMode() {
 }
 
 // ==========================================
-// AUTOCOMPLETE & SEARCH (City or ZIP)
+// SEARCH LOGIC & AUTOCOMPLETE
 // ==========================================
 let searchTimeout;
 const locationInput = document.getElementById('location-input');
 const autocompleteList = document.getElementById('autocomplete-list');
+
+// Triggers when user clicks the 🔍 icon
+function executeSearch() {
+    const query = locationInput.value.trim();
+    if (/^\d{5}$/.test(query)) {
+        processZipCode(query);
+    } else if (query.length > 2) {
+        // Trigger manual API search if they typed a city but didn't pick from dropdown
+        fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1`)
+            .then(res => res.json())
+            .then(data => {
+                if(data.results && data.results.length > 0) {
+                    const loc = data.results[0];
+                    lat = loc.latitude; lon = loc.longitude;
+                    currentLocationText = `${loc.name}, ${loc.admin1}`;
+                    saveAndFetch();
+                } else { alert("Location not found."); }
+            });
+    }
+}
 
 locationInput.addEventListener('input', (e) => {
     clearTimeout(searchTimeout);
@@ -51,13 +72,8 @@ locationInput.addEventListener('input', (e) => {
     if (query.length < 3) return;
 
     searchTimeout = setTimeout(async () => {
-        // If it's a 5-digit ZIP, handle instantly without dropdown
-        if (/^\d{5}$/.test(query)) {
-            processZipCode(query);
-            return;
-        }
+        if (/^\d{5}$/.test(query)) return; // Let manual search handle exact zips
 
-        // Otherwise, Autocomplete City search
         try {
             const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5`);
             const data = await res.json();
@@ -75,7 +91,7 @@ locationInput.addEventListener('input', (e) => {
                     autocompleteList.appendChild(item);
                 });
             }
-        } catch (err) { console.error("Geocoding Error", err); }
+        } catch (err) { console.error(err); }
     }, 400);
 });
 
@@ -84,13 +100,10 @@ async function processZipCode(zip) {
         const res = await fetch(`https://api.zippopotam.us/us/${zip}`);
         if (!res.ok) throw new Error("ZIP not found");
         const data = await res.json();
-        lat = data.places[0].latitude;
-        lon = data.places[0].longitude;
+        lat = data.places[0].latitude; lon = data.places[0].longitude;
         currentLocationText = `${data.places[0]["place name"]}, ${data.places[0]["state abbreviation"]} (${zip})`;
         saveAndFetch();
-    } catch (e) {
-        alert("Invalid ZIP Code.");
-    }
+    } catch (e) { alert("Invalid ZIP Code."); }
 }
 
 function saveAndFetch() {
@@ -103,14 +116,16 @@ function saveAndFetch() {
     fetchLiveWeather();
 }
 
-// Hide autocomplete on click outside
 document.addEventListener('click', (e) => { if(e.target !== locationInput) autocompleteList.innerHTML = ''; });
 
 // ==========================================
-// CORE DATA & THREAT LOGIC
+// CORE DATA FETCHING (Only updates values)
 // ==========================================
 async function fetchLiveWeather() {
     if (!lat || !lon) return;
+
+    // Visual queue that refresh is happening
+    document.getElementById('val-time').innerText = "Scanning...";
 
     try {
         // 1. Fetch Weather Data
@@ -119,18 +134,18 @@ async function fetchLiveWeather() {
         const meteoData = await meteoRes.json();
         const current = meteoData.current;
 
-        // Render Data
+        // Convert hPa to inHg for Barometric Pressure
+        const pressureInHg = (current.surface_pressure * 0.02953).toFixed(2);
+
+        // Update DOM cleanly
         document.getElementById('val-temp').innerText = `${Math.round(current.temperature_2m)}°F`;
         document.getElementById('val-feel').innerText = `${Math.round(current.apparent_temperature)}°F`;
         document.getElementById('val-wind').innerText = `${Math.round(current.wind_speed_10m)} mph`;
         document.getElementById('val-wind-dir').innerText = getWindDirection(current.wind_direction_10m);
-        
-        // Pro Data
         document.getElementById('val-dew').innerText = `${Math.round(current.dew_point_2m)}°F`;
         document.getElementById('val-humidity').innerText = `${current.relative_humidity_2m}%`;
-        document.getElementById('val-pressure').innerText = `${Math.round(current.surface_pressure)} hPa`;
+        document.getElementById('val-pressure').innerText = `${pressureInHg} inHg`;
 
-        // Update Timestamp with local timezone info
         const now = new Date();
         const tzName = Intl.DateTimeFormat().resolvedOptions().timeZone;
         document.getElementById('val-time').innerText = `${now.toLocaleTimeString()} (${tzName})`;
@@ -143,50 +158,40 @@ async function fetchLiveWeather() {
         processThreatLevel(allActiveAlerts);
         renderBulletins();
 
-        // 3. Sync Clock for Auto-Refresh
         syncWithDeviceClock();
 
     } catch (error) {
         console.error("Fetch Error:", error);
+        document.getElementById('val-time').innerText = "Network Error";
     }
 }
 
 // Evaluates NWS data into the 1-5 Scale
 function processThreatLevel(alerts) {
-    let maxLevel = 1; // Default Green/Clear
-    
+    let maxLevel = 1; 
     alerts.forEach(alert => {
         const event = alert.properties.event.toUpperCase();
-        
         if (event.includes("TORNADO WARNING") || event.includes("EXTREME WIND") || event.includes("FLASH FLOOD EMERGENCY")) {
             maxLevel = Math.max(maxLevel, 5);
-        } else if (event.includes("WARNING")) {
-            maxLevel = Math.max(maxLevel, 4);
-        } else if (event.includes("WATCH")) {
-            maxLevel = Math.max(maxLevel, 3);
-        } else if (event.includes("ADVISORY") || event.includes("STATEMENT")) {
-            maxLevel = Math.max(maxLevel, 2);
-        }
+        } else if (event.includes("WARNING")) { maxLevel = Math.max(maxLevel, 4); } 
+        else if (event.includes("WATCH")) { maxLevel = Math.max(maxLevel, 3); } 
+        else if (event.includes("ADVISORY") || event.includes("STATEMENT")) { maxLevel = Math.max(maxLevel, 2); }
     });
 
     currentThreatLevel = maxLevel;
-    
-    // Update UI Pill
     const indicator = document.getElementById('threat-indicator');
     indicator.className = `threat-pill level-${currentThreatLevel}`;
-    
     const descriptions = ["1 (Clear)", "2 (Advisory)", "3 (Watch)", "4 (Warning)", "5 (Extreme Danger)"];
     indicator.innerText = `Threat Level: ${descriptions[currentThreatLevel - 1]}`;
 }
 
-// Renders the first 5 alerts, pushes the rest to the Modal
+// ==========================================
+// NWS BULLETINS & MODAL READER
+// ==========================================
 function renderBulletins() {
     const box = document.getElementById('local-bulletins');
-    const modalList = document.getElementById('modal-bulletin-list');
     const viewAllBtn = document.getElementById('view-all-bulletins-btn');
-    
     box.innerHTML = '';
-    modalList.innerHTML = '';
 
     if (allActiveAlerts.length === 0) {
         box.innerHTML = '<p class="alert-text-muted">No active bulletins for this location.</p>';
@@ -194,30 +199,24 @@ function renderBulletins() {
         return;
     }
 
-    // Render up to 5 on the dashboard
-    allActiveAlerts.slice(0, 5).forEach(alert => {
+    // Render summary on dashboard
+    allActiveAlerts.slice(0, 5).forEach((alert, index) => {
         const event = alert.properties.event;
         const color = getAlertColor(event);
+        // Use headline for jargon-free summary
+        const summary = alert.properties.headline || "Active weather alert in your area.";
+        
         box.innerHTML += `
             <div class="bulletin-item" style="border-left-color: ${color}">
                 <h4 style="color: ${color}">${event}</h4>
-                <p>${alert.properties.headline || "Check NWS for details."}</p>
+                <p>${summary}</p>
+                <span class="read-more-link" onclick="openStatementReader(${index})">Read Full Statement</span>
             </div>`;
     });
 
-    // Handle overflow
     if (allActiveAlerts.length > 5) {
         viewAllBtn.classList.remove('hidden');
         viewAllBtn.innerText = `View All ${allActiveAlerts.length} Alerts`;
-        
-        allActiveAlerts.forEach(alert => {
-            const event = alert.properties.event;
-            modalList.innerHTML += `
-                <div class="bulletin-item" style="border-left-color: ${getAlertColor(event)}">
-                    <h4 style="color: ${getAlertColor(event)}">${event}</h4>
-                    <p>${alert.properties.description || alert.properties.headline}</p>
-                </div>`;
-        });
     } else {
         viewAllBtn.classList.add('hidden');
     }
@@ -232,9 +231,65 @@ function getAlertColor(eventName) {
     return "var(--text-main)";
 }
 
-// Bulletins Modal Controls
-function openBulletinModal() { document.getElementById('bulletin-modal').classList.remove('hidden'); }
+function openStatementReader(index) {
+    const alert = allActiveAlerts[index];
+    document.getElementById('modal-alert-title').innerText = alert.properties.event;
+    
+    // Combine description and instructions for full reading
+    let fullText = alert.properties.description || "No detailed description provided.";
+    if (alert.properties.instruction) {
+        fullText += "\n\nINSTRUCTIONS:\n" + alert.properties.instruction;
+    }
+    
+    document.getElementById('modal-bulletin-list').innerText = fullText;
+    document.getElementById('bulletin-modal').classList.remove('hidden');
+}
+
+function openAllBulletins() {
+    document.getElementById('modal-alert-title').innerText = "All Active Alerts";
+    let listHTML = "";
+    allActiveAlerts.forEach(alert => {
+        listHTML += `<strong>${alert.properties.event}</strong>\n${alert.properties.description}\n\n`;
+    });
+    document.getElementById('modal-bulletin-list').innerText = listHTML;
+    document.getElementById('bulletin-modal').classList.remove('hidden');
+}
+
 function closeBulletinModal() { document.getElementById('bulletin-modal').classList.add('hidden'); }
+
+// ==========================================
+// NATIONAL TORNADO TRACKER
+// ==========================================
+async function fetchNationalTornadoes() {
+    const resultsBox = document.getElementById('national-tornado-results');
+    try {
+        const res = await fetch(`https://api.weather.gov/alerts/active?event=Tornado%20Warning`);
+        const data = await res.json();
+        
+        if (!data.features || data.features.length === 0) {
+            resultsBox.innerHTML = `<span style="color:var(--level-1)">No active Tornado Warnings nationally.</span>`;
+            return;
+        }
+
+        let html = "";
+        data.features.forEach(alert => {
+            const desc = alert.properties.description || "";
+            const isPDS = desc.toUpperCase().includes("PARTICULARLY DANGEROUS SITUATION");
+            
+            const badge = isPDS ? `<span style="background:var(--level-5); color:#fff; padding:2px 6px; border-radius:4px; font-size:0.8em; margin-left:5px;">PDS / EMERGENCY</span>` : "";
+            
+            html += `
+                <div class="bulletin-item" style="border-left-color: var(--level-5);">
+                    <h4 style="color: var(--level-5); margin-bottom: 2px;">${alert.properties.areaDesc} ${badge}</h4>
+                    <p style="font-size: 0.8em;">Expires: ${new Date(alert.properties.expires).toLocaleTimeString()}</p>
+                </div>`;
+        });
+        resultsBox.innerHTML = html;
+
+    } catch (error) {
+        resultsBox.innerHTML = "Error loading national tracker.";
+    }
+}
 
 // ==========================================
 // CLOCK SYNC AUTO-REFRESH LOGIC
@@ -242,7 +297,7 @@ function closeBulletinModal() { document.getElementById('bulletin-modal').classL
 function syncWithDeviceClock() {
     if (syncTimer) clearTimeout(syncTimer);
 
-    let refreshIntervalMins = 5; // Default Level 1 & 2
+    let refreshIntervalMins = 5; 
     if (currentThreatLevel === 3 || currentThreatLevel === 4) refreshIntervalMins = 3;
     if (currentThreatLevel === 5) refreshIntervalMins = 1;
 
@@ -250,48 +305,13 @@ function syncWithDeviceClock() {
     const currentMin = now.getMinutes();
     const currentSec = now.getSeconds();
     
-    // Calculate minutes until the next target interval (e.g., next 5-minute mark)
     let minsUntilNext = refreshIntervalMins - (currentMin % refreshIntervalMins);
-    
-    // If we are exactly on the minute, wait the full interval
     let msUntilRefresh = (minsUntilNext * 60 * 1000) - (currentSec * 1000);
 
-    // Failsafe: Ensure we don't spam requests if math resolves to < 10 seconds
     if (msUntilRefresh < 10000) msUntilRefresh += (refreshIntervalMins * 60 * 1000);
 
-    syncTimer = setTimeout(fetchLiveWeather, msUntilRefresh);
-}
-
-// ==========================================
-// STATE WIDE ALERTS LOGIC
-// ==========================================
-async function fetchStateAlerts() {
-    const stateCode = document.getElementById('state-select').value;
-    const resultsBox = document.getElementById('state-alerts-results');
-    
-    if (!stateCode) return resultsBox.innerHTML = "Please select a state.";
-
-    resultsBox.innerHTML = "Fetching alerts...";
-
-    try {
-        const res = await fetch(`https://api.weather.gov/alerts/active?area=${stateCode}`);
-        const data = await res.json();
-        
-        if (!data.features || data.features.length === 0) {
-            return resultsBox.innerHTML = `<span style="color:var(--level-1)">No active alerts in ${stateCode}.</span>`;
-        }
-
-        let html = "";
-        data.features.slice(0, 10).forEach(alert => {
-            const event = alert.properties.event;
-            const color = getAlertColor(event);
-            html += `<p><strong style="color:${color}">${event}:</strong> ${alert.properties.areaDesc}</p>`;
-        });
-
-        if (data.features.length > 10) html += `<p style="color:var(--text-muted); font-size:0.8em;">+ ${data.features.length - 10} more alerts...</p>`;
-        resultsBox.innerHTML = html;
-
-    } catch (error) {
-        resultsBox.innerHTML = "Error loading alerts.";
-    }
+    syncTimer = setTimeout(() => {
+        fetchLiveWeather();
+        fetchNationalTornadoes(); // Refresh national tracker too
+    }, msUntilRefresh);
 }
