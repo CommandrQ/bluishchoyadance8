@@ -36,8 +36,8 @@
             <div class="search-container">
                 <div class="search-input-wrapper">
                     <svg class="ui-icon-sm search-icon"><use xlink:href="#icon-search"></use></svg>
-                    <input type="text" id="location-search" placeholder="Search city..." autocomplete="off">
-                    <button id="manual-refresh-btn" class="icon-btn" title="Refresh Data">
+                    <input type="text" id="location-search" placeholder="Search city to arm engine..." autocomplete="off">
+                    <button id="manual-refresh-btn" class="icon-btn" title="Force Refresh Data">
                         <svg class="ui-icon-sm"><use xlink:href="#icon-refresh"></use></svg>
                     </button>
                 </div>
@@ -48,9 +48,9 @@
         <div class="window-content">
             
             <section class="status-header">
-                <span id="threat-badge" class="badge">LEVEL 1: CLEAR</span>
-                <h1 id="action-directive">MONITORING CONDITIONS</h1>
-                <p id="engine-tooltip">Current atmospheric conditions are stable.</p>
+                <span id="threat-badge" class="badge">SYSTEM READY</span>
+                <h1 id="action-directive">AWAITING LOCATION</h1>
+                <p id="engine-tooltip">Search a city to initialize the Decision Engine.</p>
             </section>
             
             <section class="metrics-grid basic-metrics">
@@ -69,7 +69,7 @@
             </section>
 
             <div class="toggle-container">
-                <button id="toggle-advanced-btn" class="glass-btn-sm">Show Advanced Stats</button>
+                <button id="toggle-advanced-btn" class="glass-btn-sm hidden">Show Advanced Stats</button>
             </div>
 
             <section id="advanced-metrics" class="metrics-grid advanced-metrics hidden">
@@ -93,12 +93,12 @@
                 <h3>Live NWS Scanner</h3>
                 <p class="scanner-subtitle">National Severe Hotspots</p>
                 <div id="scanner-feed" class="scroll-area">
-                    <p class="empty-state">Scanning NWS network...</p>
+                    <p class="empty-state">Awaiting system initialization...</p>
                 </div>
             </section>
 
             <div class="scan-status-footer">
-                Data Scan: <span id="scan-state" class="state-active">ACTIVE</span> | Last Scan: <span id="last-scan-time">--:--</span>
+                Data Scan: <span id="scan-state" class="state-idle">IDLE</span> | Last Scan: <span id="last-scan-time">--:--</span>
             </div>
         </div>
     </main>
