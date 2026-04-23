@@ -1,282 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Commander Q | Vanguard Portal</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
-
-    <style>
-        :root {
-            --purple: #bc13fe;
-            --cyan: #05ffa1;
-            --glass: rgba(255, 255, 255, 0.08);
-            --apple-blur: blur(20px);
-            --transition-curve: cubic-bezier(0.8, 0, 0.2, 1);
-        }
-
-        /* --- GLOBAL & MOBILE OPTIMIZATION --- */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            background: #030008;
-            color: #fff;
-            font-family: 'Orbitron', sans-serif;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* --- BACKGROUND ARCHITECTURE --- */
-        .scanlines {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
-            background-size: 100% 3px;
-            pointer-events: none;
-            z-index: 50;
-        }
-
-        .grid-container {
-            position: fixed;
-            top: 0; width: 100%; height: 100%;
-            perspective: 1000px;
-            z-index: -1;
-        }
-
-        .grid {
-            position: absolute;
-            bottom: -30%; width: 200%; height: 100%; left: -50%;
-            background-image: 
-                linear-gradient(transparent 0%, var(--purple) 2%, transparent 3%),
-                linear-gradient(90deg, transparent 0%, var(--cyan) 2%, transparent 3%);
-            background-size: 40px 40px;
-            transform: rotateX(60deg);
-            opacity: 0.35;
-            animation: moveGrid 3s linear infinite;
-        }
-
-        @keyframes moveGrid {
-            0% { transform: rotateX(60deg) translateY(0); }
-            100% { transform: rotateX(60deg) translateY(40px); }
-        }
-
-        /* --- MAIN VIEWPORT & GLASS UI --- */
-        .viewport {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            z-index: 10;
-        }
-
-        .glass-window {
-            width: 100%;
-            max-width: 600px;
-            background: var(--glass);
-            backdrop-filter: var(--apple-blur);
-            -webkit-backdrop-filter: var(--apple-blur);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            padding: clamp(2rem, 10vw, 4rem) 1.5rem;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.7);
-            transition: transform 0.1s;
-        }
-
-        /* --- FLUID TYPOGRAPHY --- */
-        h1 { 
-            font-size: clamp(1.4rem, 7vw, 2.8rem); 
-            line-height: 1.2; 
-            margin-bottom: 1rem;
-            font-weight: 900;
-        }
-
-        .sub-header { 
-            font-size: clamp(0.6rem, 2vw, 0.8rem); 
-            letter-spacing: 4px; 
-            opacity: 0.7; 
-            margin-bottom: 0.5rem;
-        }
-
-        .cyan-glow { 
-            color: var(--cyan); 
-            text-shadow: 0 0 15px var(--cyan); 
-        }
-
-        /* --- THE SLICE BUTTON --- */
-        .btn-container {
-            margin-top: 2.5rem;
-            display: flex;
-            justify-content: center;
-        }
-
-        .slice-trigger {
-            position: relative;
-            width: clamp(220px, 70vw, 320px);
-            height: 64px;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            outline: none;
-        }
-
-        .slice-top, .slice-bottom {
-            position: absolute;
-            width: 100%;
-            height: 50%;
-            left: 0;
-            background: var(--purple);
-            overflow: hidden;
-            transition: transform 0.6s var(--transition-curve), opacity 0.4s;
-        }
-
-        .slice-top { top: 0; border-bottom: 1px solid rgba(0,0,0,0.2); }
-        .slice-bottom { bottom: 0; }
-
-        .slice-top span, .slice-bottom span {
-            position: absolute;
-            width: 100%;
-            height: 64px;
-            line-height: 64px;
-            left: 0;
-            font-weight: 900;
-            font-size: 1.3rem;
-            text-align: center;
-            color: #fff;
-            text-shadow: 0 0 10px rgba(0,0,0,0.5);
-        }
-
-        .slice-top span { top: 0; }
-        .slice-bottom span { bottom: 0; }
-
-        /* --- ANIMATION STATES --- */
-        .slicing .slice-top { transform: translateY(-150%) rotate(-3deg); opacity: 0; }
-        .slicing .slice-bottom { transform: translateY(150%) rotate(3deg); opacity: 0; }
-
-        @keyframes shake {
-            0%, 100% { transform: translate(0, 0); }
-            20% { transform: translate(-10px, 5px); }
-            40% { transform: translate(10px, -5px); }
-            60% { transform: translate(-10px, -5px); }
-            80% { transform: translate(10px, 5px); }
-        }
-        .window-shake { animation: shake 0.1s infinite; }
-
-        /* --- DYNAMIC FOOTER --- */
-        .vanguard-footer {
-            padding: 25px;
-            text-align: center;
-            z-index: 20;
-        }
-
-        .footer-content {
-            font-size: 0.75rem;
-            letter-spacing: 3px;
-            color: #fff;
-            transition: opacity 0.5s ease, transform 0.5s ease;
-            text-transform: uppercase;
-        }
-
-        .pulse {
-            animation: pulseWhite 2s infinite ease-in-out;
-        }
-
-        @keyframes pulseWhite {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; text-shadow: 0 0 15px #fff; }
-        }
-
-        /* --- OVERLAY --- */
-        #fade-overlay {
-            position: fixed;
-            top: 0; width: 100%; height: 100%;
-            background: #000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 1.2s ease;
-            z-index: 1000;
-        }
-        #fade-overlay.active { opacity: 1; }
-
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Retrowave Player</title>
+  <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 
-    <div class="scanlines"></div>
-    <div class="grid-container"><div class="grid"></div></div>
+  <div class="main-window glass">
+    
+    <header class="app-header">
+      <a href="../../menu.html" class="back-btn">
+        <svg viewBox="0 0 24 24" class="icon-sm"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg> 
+        Back to Menu
+      </a>
+    </header>
 
-    <main class="viewport">
-        <div id="ui-window" class="glass-window">
-            <p class="sub-header">CMDRQ0 // NEURAL INTERFACE</p>
-            <h1 class="main-title">COMMANDER Q:<br><span class="cyan-glow">DEFENDER OF ETERNITY</span></h1>
-            
-            <div class="btn-container">
-                <button id="start-btn" class="slice-trigger">
-                    <div class="slice-top"><span>PRESS START</span></div>
-                    <div class="slice-bottom"><span>PRESS START</span></div>
-                </button>
-            </div>
-        </div>
+    <div class="video-section">
+      <div class="pulse-wrapper">
+        <div id="player"></div> 
+      </div>
+    </div>
+
+    <div class="controls-section glass-inset">
+      <button id="prev-btn" class="ctrl-btn" title="Previous Track">
+        <svg viewBox="0 0 24 24" class="icon"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+      </button>
+      
+      <button id="play-btn" class="ctrl-btn main-ctrl" title="Play">
+        <svg viewBox="0 0 24 24" class="icon-lg"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      
+      <button id="pause-btn" class="ctrl-btn main-ctrl" title="Pause" style="display:none;">
+        <svg viewBox="0 0 24 24" class="icon-lg"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+      </button>
+      
+      <button id="next-btn" class="ctrl-btn" title="Next Track">
+        <svg viewBox="0 0 24 24" class="icon"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+      </button>
+    </div>
+
+    <div class="selector-section">
+      <div class="custom-select-wrapper">
+        <select id="station-select" class="glass-input">
+          <option value="" disabled selected>Select a Station...</option>
+        </select>
+      </div>
+    </div>
+
+    <main id="playlist-container" class="playlist-section">
+      <div class="empty-state">Select a station to see playlists</div>
     </main>
 
-    <footer class="vanguard-footer">
-        <div id="footer-text" class="footer-content pulse">Built by Commander Q 2026</div>
-    </footer>
+  </div>
 
-    <div id="fade-overlay"></div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const startBtn = document.getElementById('start-btn');
-            const uiWindow = document.getElementById('ui-window');
-            const footerText = document.getElementById('footer-text');
-            const fadeOverlay = document.getElementById('fade-overlay');
-
-            // --- 1. DYNAMIC FOOTER LOGIC ---
-            let showMission = false;
-            setInterval(() => {
-                footerText.style.opacity = 0;
-                footerText.style.transform = "translateY(5px)";
-                
-                setTimeout(() => {
-                    if (!showMission) {
-                        footerText.innerText = "Empower. Educate. Elevate.";
-                    } else {
-                        footerText.innerText = "Built by Commander Q 2026";
-                    }
-                    footerText.style.opacity = 1;
-                    footerText.style.transform = "translateY(0)";
-                    showMission = !showMission;
-                }, 500);
-            }, 3000);
-
-            // --- 2. INTERACTION PROTOCOL ---
-            startBtn.addEventListener('click', () => {
-                // Execute physical slice and shake
-                startBtn.classList.add('slicing');
-                uiWindow.classList.add('window-shake');
-
-                // Initiate screen fade to black
-                setTimeout(() => {
-                    fadeOverlay.classList.add('active');
-                }, 400);
-
-                // Command Redirect
-                setTimeout(() => {
-                    window.location.href = 'menu.html';
-                }, 1600);
-            });
-        });
-    </script>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>
