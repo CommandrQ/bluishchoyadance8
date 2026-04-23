@@ -1,6 +1,7 @@
 // --- CONFIGURATION ---
 const NWS_NATIONAL_URL = 'https://api.weather.gov/alerts/active?event=Tornado%20Warning,Severe%20Thunderstorm%20Warning,Tornado%20Watch,Blizzard%20Warning,Hurricane%20Warning';
 window.scannerStatements = [];
+window.rawNationalData = []; 
 
 window.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
@@ -51,7 +52,11 @@ document.getElementById('manual-refresh-btn').addEventListener('click', () => {
     refreshDashboard();
 });
 
-// --- AUTOCOMPLETE LOGIC ---
+document.getElementById('national-filter').addEventListener('change', () => {
+    processNationalScanner(window.rawNationalData);
+});
+
+// --- DUAL-INPUT AUTOCOMPLETE LOGIC ---
 const searchInput = document.getElementById('location-search');
 const dropdown = document.getElementById('autocomplete-dropdown');
 let debounceTimer;
@@ -59,20 +64,46 @@ let debounceTimer;
 searchInput.addEventListener('input', (e) => {
     const query = e.target.value.trim();
     clearTimeout(debounceTimer);
+    
+    // We only trigger logic on 3 chars for city, or exactly 5 for ZIP
     if (query.length < 3) { dropdown.classList.add('hidden'); return; }
 
     debounceTimer = setTimeout(async () => {
+        
+        // PURE LOGIC 1: Detect 5-digit ZIP Code
+        if (/^\d{5}$/.test(query)) {
+            try {
+                const res = await fetch(`https://api.zippopotam.us/us/${query}`);
+                if (!res.ok) throw new Error("Invalid ZIP");
+                const data = await res.json();
+                const place = data.places[0];
+                const lat = place.latitude;
+                const lon = place.longitude;
+                const name = `${place['place name']}, ${place['state abbreviation']}`;
+                
+                dropdown.innerHTML = `<li onclick="selectLocation(${lat}, ${lon}, '${name}')">📍 ${name} (${query})</li>`;
+                dropdown.classList.remove('hidden');
+            } catch(err) {
+                dropdown.innerHTML = `<li style="color: #FF3B30;">No results for ZIP ${query}</li>`;
+                dropdown.classList.remove('hidden');
+            }
+            return;
+        }
+
+        // PURE LOGIC 2: Standard City Text Search
         try {
             const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${query}&count=5&language=en&format=json`);
             const data = await res.json();
             if (data.results) {
                 const usCities = data.results.filter(item => item.country_code === 'US');
-                dropdown.innerHTML = usCities.map(city => 
-                    `<li onclick="selectLocation(${city.latitude}, ${city.longitude}, '${city.name}, ${city.admin1}')">
-                        ${city.name}, ${city.admin1}
-                    </li>`
-                ).join('');
-                dropdown.classList.remove('hidden');
+                if (usCities.length > 0) {
+                    dropdown.innerHTML = usCities.map(city => 
+                        `<li onclick="selectLocation(${city.latitude}, ${city.longitude}, '${city.name}, ${city.admin1}')">
+                            🏢 ${city.name}, ${city.admin1}
+                        </li>`
+                    ).join('');
+                    dropdown.classList.remove('hidden');
+                } else { dropdown.classList.add('hidden'); }
             } else { dropdown.classList.add('hidden'); }
         } catch (err) {}
     }, 300);
@@ -114,7 +145,9 @@ async function refreshDashboard() {
     const decision = calculateDecisionEngine(localAlerts || [], localAtmosphere);
     
     renderUI(decision, localAtmosphere);
-    processNationalScanner(nationalAlerts || []);
+    
+    window.rawNationalData = nationalAlerts || [];
+    processNationalScanner(window.rawNationalData);
     
     document.getElementById('scan-state').innerText = "ACTIVE";
     document.getElementById('scan-state').className = "state-active";
@@ -144,6 +177,7 @@ async function fetchAtmosphere(lat, lon) {
             temp: cur.temperature_2m, humidity: cur.relative_humidity_2m,
             dewPoint: cur.dew_point_2m, windSpeed: cur.wind_speed_10m,
             windDir: getCardinalDirection(cur.wind_direction_10m),
+            windGusts: cur.wind_gusts_10m || 0,
             cape: cur.cape || 0, weatherCode: cur.weather_code || 0,
             statusText: decodeWeatherCode(cur.weather_code || 0),
             pressureInHg: (cur.surface_pressure * 0.02953).toFixed(2)
@@ -165,7 +199,6 @@ function getCardinalDirection(angle) {
 }
 
 function decodeWeatherCode(code) {
-    // WMO Weather interpretation codes
     if (code === 0) return "Clear Sky";
     if (code <= 3) return "Partly Cloudy";
     if (code <= 49) return "Fog / Overcast";
@@ -178,11 +211,9 @@ function decodeWeatherCode(code) {
 }
 
 // --- MODULAR EXPANDABLE DECISION ENGINE ---
-// Pure Logic: We build an array of potential threats. The highest severity wins.
 function calculateDecisionEngine(nwsAlerts, atm) {
     let activeThreats = [];
 
-    // 1. Evaluate Atmospheric Physics (Base Triggers)
     if (atm) {
         if (atm.weatherCode >= 95) {
             activeThreats.push({ level: 2, directive: "LOCAL STORM DETECTED", tooltip: "Thunderstorm active in your area. Monitor conditions." });
@@ -191,14 +222,12 @@ function calculateDecisionEngine(nwsAlerts, atm) {
         }
     }
 
-    // 2. Evaluate NWS Polygons
     nwsAlerts.forEach(alert => {
         const event = alert.properties.event;
         const text = (alert.properties.description + " " + (alert.properties.instruction || "")).toUpperCase();
         const isPDS = text.includes("PARTICULARLY DANGEROUS SITUATION");
         const isObserved = text.includes("OBSERVED");
 
-        // Easily expandable logic block
         if (event === "Tornado Warning") {
             if (isPDS || isObserved) activeThreats.push({ level: 5, directive: "IMMINENT DANGER", tooltip: "Observed Tornado. Seek underground shelter immediately!" });
             else activeThreats.push({ level: 4, directive: "TAKE COVER", tooltip: "Radar indicated Tornado Warning. Move to an interior room." });
@@ -210,25 +239,21 @@ function calculateDecisionEngine(nwsAlerts, atm) {
         else if (event.includes("Watch")) {
             activeThreats.push({ level: 2, directive: "WATCH ISSUED", tooltip: `${event} in effect. Conditions are favorable for severe weather.` });
         }
-        // Expandability Example: Hurricanes/Blizzards
         else if (event === "Hurricane Warning" || event === "Blizzard Warning") {
             activeThreats.push({ level: 4, directive: "PREPARE FOR IMPACT", tooltip: `${event} active. Extreme conditions expected.` });
         }
     });
 
-    // 3. Resolve the highest threat
     if (activeThreats.length === 0) {
         return { level: 1, directive: "CONDITIONS CLEAR", tooltip: "No severe weather indicators active." };
     }
 
-    // Sort by level descending and return the top threat
     activeThreats.sort((a, b) => b.level - a.level);
     return activeThreats[0];
 }
 
 // --- UI RENDERING ---
 function renderUI(decision, atm) {
-    // Set Body and Pulse classes
     document.body.className = `threat-level-${decision.level}`;
     document.getElementById('threat-badge').innerText = `LEVEL ${decision.level}`;
     document.getElementById('action-directive').innerText = decision.directive;
@@ -239,6 +264,7 @@ function renderUI(decision, atm) {
         document.getElementById('current-wind').innerText = Math.round(atm.windSpeed);
         document.getElementById('wind-dir').innerText = atm.windDir;
         document.getElementById('weather-status').innerText = atm.statusText;
+        document.getElementById('pro-gusts').innerText = Math.round(atm.windGusts);
         
         document.getElementById('current-humidity').innerText = Math.round(atm.humidity);
         document.getElementById('pro-pressure').innerText = atm.pressureInHg;
@@ -246,15 +272,25 @@ function renderUI(decision, atm) {
     }
 }
 
-// --- NATIONAL SCANNER LOGIC ---
+// --- NATIONAL SCANNER LOGIC WITH FILTER ---
 function processNationalScanner(features) {
     const feed = document.getElementById('scanner-feed');
-    if (!features || features.length === 0) {
-        feed.innerHTML = `<p class="empty-state">No active severe warnings nationwide.</p>`;
+    const filterVal = document.getElementById('national-filter').value;
+    
+    let filteredFeatures = features;
+    if (filterVal !== "ALL") {
+        filteredFeatures = features.filter(f => {
+            if (filterVal === "Watch") return f.properties.event.includes("Watch");
+            return f.properties.event === filterVal;
+        });
+    }
+
+    if (!filteredFeatures || filteredFeatures.length === 0) {
+        feed.innerHTML = `<p class="empty-state">No matching alerts active nationwide.</p>`;
         return;
     }
 
-    window.scannerStatements = features.map(f => {
+    window.scannerStatements = filteredFeatures.map(f => {
         const p = f.properties;
         const text = (p.description + "\n\n" + (p.instruction || "")).toUpperCase();
         return {
@@ -291,7 +327,7 @@ function getSortWeight(event, text) {
     if (event.includes("Tornado Warning")) return (text.includes("PDS") || text.includes("OBSERVED")) ? 5 : 4;
     if (event.includes("Severe Thunderstorm Warning")) return text.includes("PDS") ? 4 : 3;
     if (event.includes("Watch")) return 2;
-    return 1; // Default for Blizzards/Hurricanes in the national feed until expanded
+    return 1;
 }
 
 function openStatementModal(index) {
