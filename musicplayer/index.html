@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Retrowave Player</title>
+  <link rel="stylesheet" href="style.css?v=3">
+</head>
+<body>
+  
+  <div class="stars"></div>
+  <div class="twinkling"></div>
+
+  <div class="main-window glass">
+    
+    <header class="app-header">
+      <a href="../../menu.html" class="back-btn">⇦ Back to Menu</a>
+    </header>
+
+    <div class="video-section">
+      <div class="pulse-wrapper">
+        <div id="player"></div> 
+      </div>
+    </div>
+
+    <div class="controls-section glass-inset">
+      <button id="prev-btn" class="ctrl-btn" title="Previous Track">⏮</button>
+      <button id="play-btn" class="ctrl-btn main-ctrl" title="Play">▶</button>
+      <button id="pause-btn" class="ctrl-btn main-ctrl" title="Pause" style="display:none;">⏸</button>
+      <button id="next-btn" class="ctrl-btn" title="Next Track">⏭</button>
+    </div>
+
+    <div class="selector-section">
+      <div class="custom-select-wrapper">
+        <select id="station-select" class="glass-input">
+          <option value="" disabled selected>Select a Station...</option>
+        </select>
+      </div>
+    </div>
+
+    <main id="playlist-container" class="playlist-section">
+      <div class="empty-state">Select a station to see playlists</div>
+    </main>
+
+  </div>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script src="app.js?v=3"></script>
+</body>
+</html>
