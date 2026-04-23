@@ -5,6 +5,13 @@ const defaultPlaylist = 'PLwX0pb3GEremC1vfOY7jLfNqdfR2cTVi7';
 const playBtn = document.getElementById('play-btn');
 const pauseBtn = document.getElementById('pause-btn');
 
+// Define the colors for the stations here
+const glowColors = [
+  'rgba(0, 191, 255, 0.66)', // Index 0: Light Blue (Vi-bration)
+  'rgba(255, 45, 45, 0.66)', // Index 1: Red (Ki-netic)
+  'rgba(255, 215, 0, 0.66)'  // Index 2: Gold (Chi-rful)
+];
+
 function onYouTubeIframeAPIReady() {
   player = new YT.Player('player', {
     height: '100%',
@@ -55,14 +62,24 @@ function fetchData() {
         stationSelect.appendChild(option);
       });
 
+      // Default the glow to the first station on load
+      document.documentElement.style.setProperty('--active-glow', glowColors[0]);
+      
+      // When station changes, update playlists AND change glow color
       stationSelect.addEventListener('change', (e) => {
-        renderPlaylists(e.target.value);
+        const selectedIndex = e.target.value;
+        renderPlaylists(selectedIndex);
+        
+        // Update the CSS variable for the glow based on the array above
+        if(glowColors[selectedIndex]) {
+            document.documentElement.style.setProperty('--active-glow', glowColors[selectedIndex]);
+        }
       });
     })
     .catch(error => console.error("Error loading stations:", error));
 }
 
-let loadTimeout; // Variable to hold our delay timer
+let loadTimeout;
 
 function renderPlaylists(stationIndex) {
   const container = document.getElementById('playlist-container');
@@ -81,19 +98,15 @@ function renderPlaylists(stationIndex) {
     btn.innerHTML = `<div>${playlist.title}</div>`;
     
     btn.addEventListener('click', () => {
-      // 1. Highlight the clicked button visually
       document.querySelectorAll('.playlist-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       
-      // 2. Clear any rapid-fire clicks
       clearTimeout(loadTimeout);
       
-      // 3. Stop the current video to reset the player's internal state
       if (player && player.stopVideo) {
         player.stopVideo();
       }
       
-      // 4. Wait 300ms, then load the new playlist
       loadTimeout = setTimeout(() => {
         player.loadPlaylist({
           list: playlist.id,
