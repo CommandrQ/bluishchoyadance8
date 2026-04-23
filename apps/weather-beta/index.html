@@ -32,7 +32,7 @@
         <div class="search-container">
             <div class="search-input-wrapper">
                 <svg class="ui-icon-sm search-icon"><use xlink:href="#icon-search"></use></svg>
-                <input type="text" id="location-search" placeholder="Search city to arm engine..." autocomplete="off">
+                <input type="text" id="location-search" placeholder="Enter City or ZIP Code..." autocomplete="off">
                 <button id="manual-refresh-btn" class="icon-btn" title="Refresh Data">
                     <svg class="ui-icon-sm"><use xlink:href="#icon-refresh"></use></svg>
                 </button>
@@ -43,67 +43,79 @@
 
     <main class="centered-window">
         
-        <section class="panel weather-panel">
-            <h2 class="section-title">Local Atmosphere</h2>
-            <div class="metrics-grid basic-metrics">
-                <div class="metric-card">
-                    <small>Temp</small>
-                    <p><span id="current-temp">--</span>°F</p>
-                </div>
-                <div class="metric-card">
-                    <small>Wind</small>
-                    <p><span id="current-wind">--</span> <span class="unit">mph</span> <span id="wind-dir" class="unit">--</span></p>
-                </div>
-                <div class="metric-card">
-                    <small>Status</small>
-                    <p id="weather-status" style="font-size: 1.1rem; padding-top: 5px;">Awaiting...</p>
-                </div>
-            </div>
+        <div class="threat-awareness-bar"></div>
 
-            <div class="toggle-container">
-                <button id="toggle-advanced-btn" class="glass-btn-sm hidden">Show Advanced Metrics</button>
-            </div>
-
-            <div id="advanced-metrics" class="metrics-grid advanced-metrics hidden">
-                <div class="metric-card">
-                    <small>Humidity</small>
-                    <p><span id="current-humidity">--</span>%</p>
+        <div class="window-content">
+            <section class="panel weather-panel">
+                <h2 class="section-title">Local Atmosphere</h2>
+                <div class="metrics-grid basic-metrics">
+                    <div class="metric-card">
+                        <small>Temp</small>
+                        <p><span id="current-temp">--</span>°F</p>
+                    </div>
+                    <div class="metric-card">
+                        <small>Wind</small>
+                        <p><span id="current-wind">--</span> <span class="unit">mph</span> <span id="wind-dir" class="unit">--</span></p>
+                    </div>
+                    <div class="metric-card">
+                        <small>Status</small>
+                        <p id="weather-status" style="font-size: 1.1rem; padding-top: 5px;">Awaiting...</p>
+                    </div>
                 </div>
-                <div class="metric-card">
-                    <small>Pressure</small>
-                    <p><span id="pro-pressure">--</span> <span class="unit">inHg</span></p>
-                </div>
-                <div class="metric-card">
-                    <small>Dew Point</small>
-                    <p><span id="pro-dewpoint">--</span>°F</p>
-                </div>
-            </div>
-        </section>
 
-        <hr class="glass-divider">
+                <div class="toggle-container">
+                    <button id="toggle-advanced-btn" class="glass-btn-sm hidden">Show Advanced Metrics</button>
+                </div>
 
-        <div class="bottom-split">
-            
-            <section class="panel scanner-panel">
-                <h2 class="section-title">National Active Alerts</h2>
-                <div id="scanner-feed" class="scroll-area">
-                    <p class="empty-state">Awaiting system initialization...</p>
+                <div id="advanced-metrics" class="metrics-grid advanced-metrics hidden">
+                    <div class="metric-card">
+                        <small>Humidity</small>
+                        <p><span id="current-humidity">--</span>%</p>
+                    </div>
+                    <div class="metric-card">
+                        <small>Pressure</small>
+                        <p><span id="pro-pressure">--</span> <span class="unit">inHg</span></p>
+                    </div>
+                    <div class="metric-card">
+                        <small>Dew Point</small>
+                        <p><span id="pro-dewpoint">--</span>°F</p>
+                    </div>
                 </div>
             </section>
 
-            <section class="panel decision-panel heartbeat-target">
-                <h2 class="section-title">Decision Engine</h2>
-                <div class="decision-content">
-                    <span id="threat-badge" class="badge badge-pulse">STANDBY</span>
-                    <h1 id="action-directive">AWAITING LOC</h1>
-                    <p id="engine-tooltip">Engine disarmed. Please search a location.</p>
-                </div>
-            </section>
+            <hr class="glass-divider">
 
-        </div>
+            <div class="bottom-split">
+                
+                <section class="panel scanner-panel">
+                    <div class="scanner-header-wrapper">
+                        <h2 class="section-title" style="margin-bottom: 5px;">National Active Alerts</h2>
+                        <select id="national-filter" class="glass-select">
+                            <option value="ALL">All Severe Alerts</option>
+                            <option value="Tornado Warning">Tornado Warnings Only</option>
+                            <option value="Severe Thunderstorm Warning">Severe T-Storm Warnings Only</option>
+                            <option value="Watch">Watches Only</option>
+                        </select>
+                    </div>
+                    <div id="scanner-feed" class="scroll-area">
+                        <p class="empty-state">Awaiting system initialization...</p>
+                    </div>
+                </section>
 
-        <div class="scan-status-footer">
-            Data Scan: <span id="scan-state" class="state-idle">IDLE</span> | Last Scan: <span id="last-scan-time">--:--</span>
+                <section class="panel decision-panel heartbeat-target">
+                    <h2 class="section-title">Local Decision Engine</h2>
+                    <div class="decision-content">
+                        <span id="threat-badge" class="badge badge-pulse">STANDBY</span>
+                        <h1 id="action-directive">AWAITING LOC</h1>
+                        <p id="engine-tooltip">Engine disarmed. Please search a location.</p>
+                    </div>
+                </section>
+
+            </div>
+
+            <div class="scan-status-footer">
+                Data Scan: <span id="scan-state" class="state-idle">IDLE</span> | Last Scan: <span id="last-scan-time">--:--</span>
+            </div>
         </div>
     </main>
 
