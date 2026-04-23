@@ -1,7 +1,7 @@
 :root {
-  --main-bg: #09090b; /* Very dark background */
+  --main-bg: #09090b; 
   --text-color: #f1f1f1;
-  --glass-bg: rgba(20, 20, 25, 0.6); /* Dark Frosted background */
+  --glass-bg: rgba(20, 20, 25, 0.6); 
   --glass-border: rgba(255, 255, 255, 0.08);
   --highlight: #ffffff;
   
@@ -19,7 +19,6 @@
 
 body {
   background-color: var(--main-bg);
-  /* Subtle dark radial gradient behind the glass */
   background: radial-gradient(circle at center, #1a1a24 0%, #050505 100%);
   color: var(--text-color);
   height: 100vh; 
@@ -51,22 +50,64 @@ body {
   z-index: 10;
 }
 
-/* Header */
+/* --- ANIMATED NEON HEADER BUTTON --- */
 .app-header {
   flex-shrink: 0;
   margin-bottom: 20px;
+  display: flex;
+  justify-content: flex-start;
 }
 
 .back-btn {
-  color: rgba(255,255,255,0.6);
+  position: relative;
+  color: #fff;
   text-decoration: none;
-  font-size: 15px;
-  display: flex;
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  transition: color 0.2s;
+  padding: 8px 16px;
+  background: rgba(0, 243, 255, 0.1);
+  border: 1px solid #00f3ff;
+  border-radius: 8px;
+  text-shadow: 0 0 5px #00f3ff, 0 0 10px #00f3ff;
+  overflow: hidden;
+  animation: neon-pulse 2s infinite alternate;
+  transition: transform 0.2s;
 }
-.back-btn:hover { color: var(--text-color); }
+
+.back-btn:active {
+  transform: scale(0.95);
+}
+
+.back-btn svg {
+  filter: drop-shadow(0 0 3px #00f3ff);
+}
+
+/* The Sheen Effect */
+.back-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0) 100%);
+  transform: skewX(-25deg);
+  animation: sheen-sweep 4s infinite;
+}
+
+@keyframes neon-pulse {
+  0% { box-shadow: 0 0 5px rgba(0,243,255,0.4), inset 0 0 5px rgba(0,243,255,0.4); }
+  100% { box-shadow: 0 0 15px rgba(0,243,255,0.8), inset 0 0 10px rgba(0,243,255,0.6); }
+}
+
+@keyframes sheen-sweep {
+  0% { left: -100%; }
+  20% { left: 200%; }
+  100% { left: 200%; } /* Pauses the sheen before sweeping again */
+}
 
 /* SVG Icon Sizing */
 .icon-sm { width: 18px; height: 18px; fill: currentColor; }
@@ -88,13 +129,9 @@ body {
   border-radius: 12px;
   position: relative;
   overflow: hidden;
-  
-  /* Your requested glow code applied dynamically */
   -webkit-box-shadow: 0px 0px 191px 5px var(--active-glow);
   -moz-box-shadow: 0px 0px 191px 5px var(--active-glow);
   box-shadow: 0px 0px 191px 5px var(--active-glow);
-  
-  /* Smooth transition when colors change */
   transition: box-shadow 0.8s ease-in-out; 
 }
 
