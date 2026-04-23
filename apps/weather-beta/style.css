@@ -14,11 +14,10 @@
 /* LAYER 0: Ambient Environment */
 body {
     background-color: #000; color: #fff;
-    width: 100vw; height: 100dvh; 
+    width: 100vw; height: 100vh; 
     overflow: hidden; 
-    display: flex; flex-direction: column; align-items: center; 
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
     padding: 2vh 2vw; 
-    /* The Background Slow Pulse */
     transition: background-color 1s ease;
 }
 
@@ -36,12 +35,12 @@ body {
 /* LAYER 6: Offline Intercept */
 #offline-banner { position: fixed; top: 0; left: 0; right: 0; background: #FF9500; color: #000; font-weight: bold; text-align: center; padding: 10px; z-index: 60000; }
 
-/* LAYER 5: Search & Nav */
+/* LAYER 5: Command & Control (Extracted from Window) */
 .top-nav { 
     display: flex; justify-content: center; align-items: center; gap: 15px; 
     position: relative; z-index: 50000; 
     width: 100%; max-width: 900px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 .back-btn { text-decoration: none; display: flex; align-items: center; justify-content: center; font-weight: 600; flex-shrink: 0; }
 .glass-btn, .glass-btn-sm { background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); color: white; padding: 10px 15px; border-radius: 12px; cursor: pointer; transition: background 0.2s; }
@@ -68,11 +67,30 @@ body {
     border-radius: 24px; 
     box-shadow: 0 20px 50px rgba(0,0,0,0.5);
     display: flex; flex-direction: column;
-    padding: 20px; gap: 20px;
     position: relative; z-index: 10;
 }
 
-/* SECTION STRUCTURE */
+/* LAYER 3: Threat Bar */
+.threat-awareness-bar {
+    width: 100%; height: 6px; flex-shrink: 0;
+    transition: background-color 0.5s ease;
+    border-radius: 24px 24px 0 0; 
+    position: relative; z-index: 3000;
+}
+.threat-level-1 .threat-awareness-bar { background-color: var(--lvl-1); }
+.threat-level-2 .threat-awareness-bar { background-color: var(--lvl-2); }
+.threat-level-3 .threat-awareness-bar { background-color: var(--lvl-3); }
+.threat-level-4 .threat-awareness-bar { background-color: var(--lvl-4); animation: alert-flash 1s infinite alternate; }
+.threat-level-5 .threat-awareness-bar { background-color: var(--lvl-5); animation: alert-flash 0.5s infinite alternate; }
+@keyframes alert-flash { from { opacity: 0.4; } to { opacity: 1; box-shadow: 0 0 15px currentColor; } }
+
+/* Inner Content Logic */
+.window-content {
+    flex-grow: 1; display: flex; flex-direction: column;
+    padding: 20px 25px; gap: 20px;
+    width: 100%; min-height: 0; overflow: hidden;
+}
+
 .panel { background: rgba(0,0,0,0.2); border-radius: 16px; padding: 15px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; }
 .section-title { font-size: 1rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; text-align: center; }
 .glass-divider { width: 100%; border: 0; height: 1px; background: var(--glass-border); flex-shrink: 0; }
@@ -87,11 +105,14 @@ body {
 .toggle-container { width: 100%; text-align: center; margin-top: 15px; }
 .hidden { display: none !important; }
 
-/* BOTTOM SPLIT: NWS Feed & Decision Engine */
+/* BOTTOM SPLIT */
 .bottom-split { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex-grow: 1; min-height: 0; }
 
-/* Scanner Panel */
 .scanner-panel { overflow: hidden; }
+.scanner-header-wrapper { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+.glass-select { background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); color: white; padding: 6px 10px; border-radius: 8px; outline: none; font-size: 0.85rem; width: 100%; }
+.glass-select option { background: #1a1a1d; color: white; }
+
 .scroll-area { flex-grow: 1; overflow-y: auto; padding-right: 5px; }
 .scanner-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px; margin-bottom: 10px; }
 .pds-card { border-color: var(--lvl-5); background: rgba(175, 82, 222, 0.15); }
@@ -99,14 +120,14 @@ body {
 .status-tag { font-size: 0.7rem; font-weight: 800; color: #aaa; }
 .pds-card .status-tag { color: var(--lvl-5); }
 
-/* Decision Engine Panel & Heartbeat */
+/* Decision Engine Panel */
 .decision-panel { align-items: center; justify-content: center; text-align: center; position: relative; overflow: hidden; }
 .decision-content { display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 2; }
 .decision-panel h1 { font-size: 2rem; font-weight: 800; line-height: 1.1; }
 .badge { padding: 6px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: bold; background: rgba(255,255,255,0.2); }
 #engine-tooltip { font-size: 0.9rem; color: rgba(255,255,255,0.7); margin-top: 10px; }
 
-/* THE HEARTBEAT ANIMATIONS */
+/* Heartbeat Target */
 .threat-level-1 .heartbeat-target { border-color: rgba(0, 122, 255, 0.3); box-shadow: inset 0 0 20px rgba(0, 122, 255, 0.1); }
 .threat-level-2 .heartbeat-target { border-color: var(--lvl-2); animation: border-pulse-slow 4s infinite alternate; }
 .threat-level-3 .heartbeat-target { border-color: var(--lvl-3); animation: border-pulse-med 2s infinite alternate; }
@@ -118,7 +139,6 @@ body {
 @keyframes border-pulse-fast { from { box-shadow: inset 0 0 30px currentColor, 0 0 20px currentColor; } to { box-shadow: inset 0 0 80px currentColor, 0 0 40px currentColor; } }
 @keyframes border-pulse-rapid { from { box-shadow: inset 0 0 50px currentColor, 0 0 30px currentColor; transform: scale(1); } to { box-shadow: inset 0 0 100px currentColor, 0 0 60px currentColor; transform: scale(1.02); } }
 
-/* Footer */
 .scan-status-footer { text-align: center; font-size: 0.75rem; font-family: monospace; color: rgba(255,255,255,0.5); flex-shrink: 0; }
 .state-active { color: #34C759; font-weight: bold; }
 .state-idle { color: #FF9500; font-weight: bold; }
@@ -133,12 +153,25 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
 
-/* Mobile Stack */
+/* ========================================================
+   MOBILE SCROLL UNLOCK & REORDERING
+   ======================================================== */
 @media (max-width: 768px) {
-    .top-nav { flex-direction: column; align-items: stretch; gap: 10px; margin-bottom: 10px; }
+    body { 
+        height: auto; min-height: 100vh; 
+        overflow-y: auto; 
+        display: block; 
+        padding: 15px;
+    }
+    
+    .top-nav { flex-direction: column; align-items: stretch; gap: 10px; margin-bottom: 15px; }
     .back-btn { padding: 12px; }
-    .centered-window { padding: 15px; gap: 15px; }
-    .bottom-split { grid-template-columns: 1fr; }
-    .decision-panel { min-height: 200px; } /* Ensures physical space for the pulse effect */
-    .scanner-panel { min-height: 250px; }
+    
+    .centered-window { height: auto; max-height: none; overflow: visible; }
+    .window-content { overflow: visible; padding: 15px 15px 20px 15px; gap: 15px; }
+    
+    .bottom-split { display: flex; flex-direction: column-reverse; gap: 15px; }
+    
+    .decision-panel { min-height: 250px; }
+    .scanner-panel { min-height: 400px; }
 }
